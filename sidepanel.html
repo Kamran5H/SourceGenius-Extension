@@ -1,0 +1,2194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Source Genius</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--surface:#161b22;--card:#1c2230;--border:#30363d;
+  --accent:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#e3b341;
+  --purple:#bc8cff;--orange:#f0883e;--text:#e6edf3;--muted:#8b949e;--r:8px;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:13px;display:flex;flex-direction:column;height:100vh}
+
+/* Header */
+#hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.logo{font-size:20px;line-height:1}
+.hd{flex:1}
+.htitle{font-size:14px;font-weight:700}
+.hsub{font-size:10px;color:var(--muted)}
+#sdot{width:9px;height:9px;border-radius:50%;background:var(--muted);transition:background .3s;flex-shrink:0}
+#sdot.run{background:var(--green);animation:pulse 1.2s ease-in-out infinite}
+#sdot.pause{background:var(--yellow)}
+#sdot.done{background:var(--accent)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.vbadge{font-size:9px;font-weight:700;background:#1a3a2e;color:#56d364;padding:2px 6px;border-radius:4px;vertical-align:middle;margin-left:4px}
+/* v6.0.3: Announcement banner */
+#v6-ann-banner{position:fixed;top:0;left:0;right:0;z-index:9999;padding:7px 12px;display:none;align-items:center;gap:7px;font-size:11px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.7)}
+#v6-ann-banner.ann-urgent{background:#4a0000;color:#ffcccc;border-bottom:2px solid #ff4444;animation:annBlink 1.1s ease-in-out infinite}
+#v6-ann-banner.ann-normal{background:#1a2a3a;color:#aaddff;border-bottom:2px solid #4488cc}
+#v6-ann-banner.ann-info{background:#1a2a1a;color:#aaffaa;border-bottom:2px solid #44aa44}
+#v6-ann-banner .ann-icon{flex-shrink:0;font-size:15px}
+#v6-ann-banner .ann-text{flex:1;line-height:1.4}
+#v6-ann-banner .ann-link{color:inherit;opacity:.85;text-decoration:underline;word-break:break-all;margin-left:4px}
+#v6-ann-banner .ann-dismiss{flex-shrink:0;background:none;border:none;color:inherit;opacity:.7;cursor:pointer;font-size:14px;padding:0 3px;line-height:1}
+#v6-ann-banner .ann-dismiss:hover{opacity:1}
+@keyframes annBlink{0%,100%{opacity:1}50%{opacity:.5}}
+/* v6.0.5: Team sub-tabs */
+#v6-team-subtabs{display:flex;background:#0d1117;border-bottom:2px solid #1a2a4a;flex-shrink:0}
+.v6-tsub{flex:1;padding:10px 6px;font-size:11px;font-weight:700;color:#556;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:color .2s,border-color .2s;text-align:center;margin-bottom:-2px;letter-spacing:.02em}
+.v6-tsub.on{color:#58a6ff;border-bottom-color:#58a6ff}
+.v6-tsub:hover:not(.on){color:#99aacc}
+#v6-chat-unread-dot,#v6-ann-tab-dot,#v7-inbox-dot{display:none;width:7px;height:7px;background:#f85149;border-radius:50%;vertical-align:middle;margin-left:3px;animation:annBlink .8s ease-in-out infinite}
+/* v7.0.2: Inbox Chat sub-tab (WhatsApp-style, same as group chat) */
+#v7-inbox-subtab{background:#0a0d14;flex:1;flex-direction:column;overflow:hidden;display:none}
+#v7-inbox-header{padding:9px 13px;border-bottom:1px solid #1a2a4a;background:#0f1520;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px}
+#v7-inbox-contact-select{background:#1a2a4a;color:#cdd9e5;border:1px solid #2a3a5a;border-radius:6px;padding:4px 8px;font-size:11px;flex:1;cursor:pointer}
+#v7-inbox-messages-wrap{flex:1;flex-direction:column;overflow:hidden;display:flex}
+#v7-inbox-messages{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:6px;scroll-behavior:smooth}
+#v7-inbox-messages::-webkit-scrollbar{width:3px}
+#v7-inbox-messages::-webkit-scrollbar-thumb{background:#2a3050;border-radius:2px}
+#v7-inbox-input-bar{padding:8px 10px;border-top:1px solid #1a2a4a;background:#0f1520;flex-shrink:0}
+.v7-inbox-bubble{max-width:80%;padding:7px 11px;border-radius:14px;font-size:12px;line-height:1.45;word-break:break-word;position:relative}
+.v7-inbox-bubble.mine{align-self:flex-end;background:#1a3a5a;color:#cdd9e5;border-bottom-right-radius:3px}
+.v7-inbox-bubble.theirs{align-self:flex-start;background:#1a2a1a;color:#cdd9e5;border-bottom-left-radius:3px}
+.v7-inbox-bubble .v7-ib-from{font-size:9px;color:#58a6ff;font-weight:700;margin-bottom:3px}
+.v7-inbox-bubble .v7-ib-time{font-size:9px;color:#445;margin-top:3px;text-align:right}
+.v7-inbox-empty{text-align:center;color:#445;font-size:12px;margin-top:40px;padding:20px}
+/* v7.0.2: Voice Call UI */
+#v7-call-btn-wrap{margin:10px 0 4px;}
+#v7-call-admin-btn{width:100%;padding:9px 0;background:linear-gradient(135deg,#1a4a2a,#0d2d1a);color:#7ee787;border:1px solid #2d6a3a;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.03em;transition:background .2s}
+#v7-call-admin-btn:hover{background:linear-gradient(135deg,#2a6a3a,#1a4a2a)}
+#v7-call-admin-btn:disabled{background:#1a1f2e;color:#445;border-color:#2a3050;cursor:not-allowed}
+/* Incoming call popup (shown to admin) */
+#v7-incoming-call-popup{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;flex-direction:column}
+#v7-incoming-call-popup.active{display:flex}
+.v7-call-popup-inner{background:#0d1117;border:2px solid #2d6a3a;border-radius:20px;padding:28px 24px;text-align:center;max-width:290px;box-shadow:0 8px 40px rgba(46,213,115,.18)}
+.v7-call-avatar{font-size:48px;margin-bottom:10px}
+.v7-call-caller-name{font-size:15px;font-weight:700;color:#cdd9e5;margin-bottom:4px}
+.v7-call-sub{font-size:11px;color:#8090a0;margin-bottom:18px}
+.v7-call-popup-btns{display:flex;gap:14px;justify-content:center}
+/* Active call overlay */
+#v7-active-call-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:#0d1f0d;border-top:2px solid #2d6a3a;padding:10px 14px;z-index:8888;align-items:center;justify-content:space-between;gap:10px}
+#v7-active-call-bar.active{display:flex}
+.v7-call-status-text{font-size:12px;color:#7ee787;font-weight:700}
+.v7-call-timer{font-size:11px;color:#8090a0;font-family:monospace}
+.v7-call-ctrl-btns{display:flex;gap:8px}
+/* v7.0.3: WhatsApp-style call UI enhancements */
+.v7-call-ring-anim{position:relative;width:90px;height:90px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center}
+.v7-call-ring-wave{position:absolute;top:0;left:0;right:0;bottom:0;border-radius:50%;border:2px solid rgba(46,213,115,.45);animation:v7RingPulse 1.6s ease-out infinite}
+@keyframes v7RingPulse{0%{transform:scale(.7);opacity:1}100%{transform:scale(1.5);opacity:0}}
+.v7-call-avatar-circle{width:64px;height:64px;background:linear-gradient(135deg,#1a4a2a,#0d2d1a);border:2px solid #2d6a3a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;z-index:1;position:relative}
+.v7-call-action-row{display:flex;gap:40px;justify-content:center;margin-top:24px}
+.v7-call-action-wrap{display:flex;flex-direction:column;align-items:center;gap:7px}
+.v7-call-action-label{font-size:10px;color:#8090a0;letter-spacing:.03em}
+.v7-call-circle-btn{width:54px;height:54px;border-radius:50%;border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s}
+.v7-call-circle-btn:active{transform:scale(.93)}
+.v7-call-accept{background:linear-gradient(135deg,#1db954,#0d8a3a);box-shadow:0 4px 18px rgba(29,185,84,.45)}
+.v7-call-accept:hover{box-shadow:0 6px 24px rgba(29,185,84,.6)}
+.v7-call-decline{background:linear-gradient(135deg,#e53935,#b71c1c);box-shadow:0 4px 18px rgba(229,57,53,.45)}
+.v7-call-decline:hover{box-shadow:0 6px 24px rgba(229,57,53,.6)}
+/* Active call bar polish */
+.v7-call-bar-left{display:flex;align-items:center;gap:10px}
+.v7-call-bar-avatar{width:34px;height:34px;background:linear-gradient(135deg,#1a4a2a,#0d2d1a);border:1px solid #2d6a3a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.v7-ctrl-btn{width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .15s}
+.v7-ctrl-btn:active{transform:scale(.9)}
+.v7-ctrl-mute{background:#1a2a3a;color:#cdd9e5;border:1px solid #2a3a5a}
+.v7-ctrl-mute:hover{background:#253a4a}
+.v7-ctrl-hangup{background:linear-gradient(135deg,#c62828,#7f0000);color:#fff;box-shadow:0 2px 10px rgba(198,40,40,.5)}
+.v7-ctrl-hangup:hover{box-shadow:0 4px 16px rgba(198,40,40,.7)}
+/* Inbox chat polish */
+.v7-inbox-bubble{max-width:82%;padding:8px 12px;border-radius:16px;font-size:12px;line-height:1.5;word-break:break-word;position:relative;animation:v7BubbleIn .18s ease-out}
+@keyframes v7BubbleIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.v7-inbox-bubble.mine{align-self:flex-end;background:linear-gradient(135deg,#1a3a5a,#0d2a4a);color:#e6edf3;border-bottom-right-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.v7-inbox-bubble.theirs{align-self:flex-start;background:#1a2430;color:#cdd9e5;border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.v7-inbox-bubble .v7-ib-from{font-size:9px;color:#58a6ff;font-weight:700;margin-bottom:3px;letter-spacing:.02em}
+.v7-inbox-bubble .v7-ib-text{word-break:break-word}
+.v7-inbox-bubble .v7-ib-footer{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:4px}
+.v7-inbox-bubble .v7-ib-time{font-size:9px;color:#556;letter-spacing:.01em}
+.v7-inbox-bubble.mine .v7-ib-time{color:#4a7a9a}
+.v7-inbox-bubble .v7-ib-tick{font-size:10px;color:#4a8aaa}
+.v7-inbox-date-sep{text-align:center;font-size:9px;color:#445;background:#0f1520;padding:3px 10px;border-radius:8px;margin:6px auto;max-width:110px;align-self:center}
+/* v6.0.5: Members subtab scrollable area */
+#v6-members-subtab{overflow-y:auto;padding:12px;flex:1}
+#v6-members-subtab::-webkit-scrollbar{width:4px}
+#v6-members-subtab::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+/* v6.0.5: WhatsApp-style Chat */
+#v6-chat-subtab{background:#0a0d14;flex:1;flex-direction:column;overflow:hidden;display:none}
+#v6-chat-header{padding:9px 13px;border-bottom:1px solid #1a2a4a;background:#0f1520;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#v6-chat-admin-bar{padding:7px 13px;background:#0c1220;border-bottom:1px solid #1a2a4a;flex-shrink:0;display:none}
+#v6-chat-nickname-setup{padding:14px 13px;flex-shrink:0;background:#0a0d14}
+#v6-chat-messages-wrap{flex:1;flex-direction:column;overflow:hidden;display:flex}
+#v6-chat-messages{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:6px;scroll-behavior:smooth}
+#v6-chat-messages::-webkit-scrollbar{width:3px}
+#v6-chat-messages::-webkit-scrollbar-thumb{background:#2a3050;border-radius:2px}
+.chat-msg{max-width:80%;padding:8px 11px;border-radius:16px;font-size:11px;line-height:1.5;word-break:break-word;animation:v6FadeIn .2s ease;position:relative}
+.chat-msg.chat-mine{align-self:flex-end;background:linear-gradient(135deg,#0e3a6a,#1a4a8a);color:#d0eaff;border-bottom-right-radius:4px}
+.chat-msg.chat-theirs{align-self:flex-start;background:#161d2e;color:#e6edf3;border:1px solid #222a40;border-bottom-left-radius:4px}
+.chat-msg.chat-system{align-self:center;background:none;border:none;color:#3a4a5a;font-size:9.5px;font-style:italic;text-align:center;padding:3px 8px;max-width:100%;animation:none}
+.chat-nick{font-size:9.5px;font-weight:700;color:#58a6ff;display:block;margin-bottom:3px}
+.chat-msg.chat-mine .chat-nick{color:#88ccee}
+.chat-text{display:block}
+.chat-time{display:block;font-size:9px;color:#556;margin-top:4px;text-align:right}
+.chat-del-btn{float:right;margin-left:6px;background:none;border:none;color:#445;cursor:pointer;font-size:11px;padding:0 2px;opacity:0;transition:opacity .15s;line-height:1}
+.chat-msg:hover .chat-del-btn{opacity:.6}
+.chat-del-btn:hover{color:#f85149;opacity:1!important}
+.chat-warn{font-size:10px;color:#e3b341;background:#221500;border:1px solid #5a3a00;border-radius:8px;padding:6px 12px;margin:4px 10px;line-height:1.4;flex-shrink:0}
+#v6-chat-emoji-tray{display:none;flex-wrap:wrap;gap:1px;padding:5px 8px;background:#0c1018;border-top:1px solid #1a2a4a;flex-shrink:0;max-height:82px;overflow-y:auto}
+.v6-emoji-btn{background:none;border:none;font-size:17px;cursor:pointer;padding:2px 3px;border-radius:5px;line-height:1.2}
+.v6-emoji-btn:hover{background:#1a2a3a}
+#v6-chat-input-bar{display:flex;gap:7px;align-items:center;padding:8px 11px;border-top:1px solid #1a2a4a;background:#0d1117;flex-shrink:0}
+#v6-chat-emoji-btn{background:none;border:none;font-size:20px;cursor:pointer;padding:0;flex-shrink:0;opacity:.7;line-height:1}
+#v6-chat-emoji-btn:hover{opacity:1}
+#v6-chat-input{flex:1;background:#161d2e;color:#e6edf3;border:1px solid #2a3a5a;border-radius:20px;padding:8px 14px;font-size:11px;font-family:inherit;outline:none;transition:border-color .15s}
+#v6-chat-input:focus{border-color:#3a6090}
+#v6-chat-input:disabled{opacity:.5}
+#v6-chat-send-btn{background:#0e3a6a;color:#58a6ff;border:1px solid #2a5a9a;border-radius:20px;padding:8px 14px;cursor:pointer;font-size:15px;flex-shrink:0;transition:background .15s}
+#v6-chat-send-btn:hover:not(:disabled){background:#1a4a7a}
+#v6-chat-send-btn:disabled{opacity:.4;cursor:default}
+@keyframes v6FadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+/* v3: user badge in header */
+#user-badge{font-size:10px;color:var(--muted);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:2px 8px;cursor:pointer;white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis}
+#user-badge:hover{border-color:var(--accent);color:var(--text)}
+
+/* Main tabs */
+#tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.tb{flex:1;padding:8px 4px;font-size:11px;font-weight:600;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:color .2s,border-color .2s;text-align:center}
+.tb.on{color:var(--accent);border-bottom-color:var(--accent)}
+.tb:hover:not(.on){color:var(--text)}
+
+/* Panels */
+#panels{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.pnl{display:none;flex:1;flex-direction:column;overflow:hidden}
+.pnl.on{display:flex}
+.scr{overflow-y:auto;padding:12px;flex:1}
+.scr::-webkit-scrollbar{width:4px}
+.scr::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* Mode cards */
+#mgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:6px}
+.mc{padding:5px 2px;border-radius:var(--r);border:1px solid var(--border);background:var(--card);cursor:pointer;text-align:center;transition:border-color .2s,background .2s;user-select:none}
+.mc .mi{font-size:16px;display:block;line-height:1.3}
+.mc .mn{font-size:10px;font-weight:700}
+.mc .ms{font-size:9px;color:var(--muted);margin-top:1px}
+.mc.sel{border-color:var(--accent);background:#1a2535}
+.mc:hover:not(.sel){border-color:#484f58}
+#mdesc{font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5;min-height:26px}
+
+/* Input mode sub-tabs */
+.itabs{display:flex;gap:0;margin-bottom:10px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;flex-shrink:0}
+.itb{flex:1;padding:7px 4px;font-size:10px;font-weight:600;color:var(--muted);background:var(--card);border:none;cursor:pointer;transition:background .2s,color .2s;text-align:center}
+.itb.on{background:var(--accent);color:#0d1117}
+.itb:hover:not(.on){background:#252d3d;color:var(--text)}
+
+/* Input panes */
+.ipane{display:none}.ipane.on{display:block}
+
+/* Labels / inputs */
+.lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;display:block}
+textarea#ain{width:100%;height:92px;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'SF Mono',Consolas,monospace;font-size:11px;resize:vertical;outline:none;transition:border-color .2s}
+textarea#ain:focus{border-color:var(--accent)}
+textarea#ain::placeholder{color:var(--muted)}
+.irow{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.csel{width:56px;padding:5px 6px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:11px;outline:none}
+#qinfo{font-size:10px;color:var(--muted);margin-top:4px;margin-bottom:2px}
+
+/* Scraper pane */
+.scraper-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px}
+.scr-instr{font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:10px}
+.scr-instr b{color:var(--text)}
+.scr-instr em{color:var(--accent);font-style:normal}
+.option-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.option-row label{font-size:11px;color:var(--muted)}
+.num-sel{width:70px;padding:5px 8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:12px;font-weight:600;outline:none}
+.chk-row{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.chk-row input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--accent)}
+.chk-row label{font-size:11px;color:var(--muted);cursor:pointer}
+#scrape-status{font-size:11px;margin-top:8px;padding:6px 8px;border-radius:var(--r);background:var(--bg);border:1px solid var(--border);color:var(--muted);line-height:1.5;display:none}
+#scrape-status.show{display:block}
+#scrape-progress-bar-wrap{background:var(--border);height:4px;border-radius:2px;margin-top:6px;overflow:hidden;display:none}
+#scrape-progress-bar-wrap.show{display:block}
+#scrape-pbar{height:100%;width:0%;background:var(--orange);border-radius:2px;transition:width .4s}
+
+/* Controls */
+.crow{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.btn{padding:6px 12px;border-radius:var(--r);border:1px solid transparent;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.4;cursor:default}
+.p{background:var(--accent);color:#0d1117;border-color:var(--accent)}
+.s{background:var(--green);color:#0d1117;border-color:var(--green)}
+.d{background:var(--red);color:#fff;border-color:var(--red)}
+.w{background:var(--yellow);color:#0d1117;border-color:var(--yellow)}
+.o{background:var(--orange);color:#0d1117;border-color:var(--orange)}
+.g{background:transparent;color:var(--muted);border-color:var(--border)}
+.g:hover{color:var(--text);border-color:#484f58}
+.sm{padding:4px 9px;font-size:11px}
+
+/* Stats */
+hr.dv{border:none;border-top:1px solid var(--border);margin:10px 0}
+.sgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:8px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:7px 4px;text-align:center}
+.sc .sv{font-size:18px;font-weight:700;line-height:1}
+.sc .sl{font-size:8px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+.sc.bl .sv{color:var(--accent)}.sc.gr .sv{color:var(--green)}.sc.rd .sv{color:var(--red)}.sc.yw .sv{color:var(--yellow)}.sc.pu .sv{color:var(--purple)}
+.pw{background:var(--border);border-radius:4px;height:5px;overflow:hidden;margin-bottom:6px}
+#pbar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:4px;transition:width .4s}
+#plbl{font-size:10px;color:var(--muted);margin-bottom:8px}
+#cur{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:11px;color:var(--muted);min-height:30px;display:flex;align-items:center;gap:8px}
+#cur .sp{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;display:none}
+#cur.run .sp{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Log */
+#lbox{background:#0a0d12;border:1px solid var(--border);border-radius:var(--r);padding:7px 9px;font-family:'SF Mono',Consolas,monospace;font-size:10.5px;height:185px;overflow-y:auto;line-height:1.5;flex-shrink:0}
+#lbox::-webkit-scrollbar{width:3px}
+#lbox::-webkit-scrollbar-thumb{background:var(--border)}
+.ll{padding:0;white-space:pre-wrap;word-break:break-all}
+.ll.ok{color:var(--green)}.ll.er{color:var(--red)}.ll.wn{color:var(--yellow)}.ll.in{color:var(--accent)}.ll.mu{color:var(--muted)}
+
+/* Results */
+.rh{display:flex;justify-content:space-between;align-items:center;padding:10px 12px 8px;flex-shrink:0;flex-wrap:wrap;gap:6px}
+.rh h3{font-size:13px}
+#rtw{overflow:auto;flex:1}
+table#rtbl{width:100%;border-collapse:collapse;font-size:11px;min-width:420px}
+table#rtbl th{background:var(--card);color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.05em;padding:7px 8px;text-align:left;position:sticky;top:0;z-index:1;border-bottom:1px solid var(--border)}
+table#rtbl td{padding:7px 8px;border-bottom:1px solid #1e252f;vertical-align:middle;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+table#rtbl tr:hover td{background:#1a2030}
+.badge{padding:2px 6px;border-radius:10px;font-size:9px;font-weight:700;display:inline-block}
+.bf{background:#1a3a1a;color:var(--green)}.bn{background:#2e2a12;color:var(--yellow)}.be{background:#2e1212;color:var(--red)}.bk{background:#1e2230;color:var(--muted)}.bd{background:#251f35;color:var(--purple)}
+.mt{font-size:9px;padding:1px 4px;border-radius:3px;background:#1e2535;color:var(--muted)}
+.conf-bar{display:inline-block;height:3px;border-radius:2px;background:var(--green);vertical-align:middle;margin-left:3px}
+a.sl{color:var(--accent);text-decoration:none}
+a.sl:hover{text-decoration:underline}
+#res-empty{text-align:center;padding:40px 20px;color:var(--muted);flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+#res-empty .icon{font-size:34px}
+#res-empty p{font-size:12px;line-height:1.6;max-width:220px}
+
+/* Config */
+.cs{margin-bottom:14px}
+.cl{font-size:11px;color:var(--muted);margin-bottom:4px;display:block}
+.ci{width:100%;padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:12px;outline:none}
+.ci:focus{border-color:var(--accent)}
+.radio-group{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.radio-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--r);border:1px solid var(--border);background:var(--card);cursor:pointer;transition:border-color .2s}
+.radio-row:hover{border-color:#484f58}
+.radio-row.checked{border-color:var(--accent);background:#1a2535}
+.radio-row input[type=radio]{accent-color:var(--accent);width:14px;height:14px}
+.radio-row label{font-size:11px;color:var(--text);cursor:pointer;flex:1}
+.radio-row .rdesc{font-size:10px;color:var(--muted);display:block;margin-top:1px}
+.chk2{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r);border:1px solid var(--border);background:var(--card)}
+.chk2 input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer}
+.chk2 label{font-size:11px;color:var(--text);cursor:pointer;flex:1}
+.chk2 .rdesc{font-size:10px;color:var(--muted);display:block;margin-top:1px}
+.code-block{background:#0a0d12;border:1px solid var(--border);border-radius:var(--r);padding:10px;font-family:monospace;font-size:10px;color:#79c0ff;line-height:1.5;overflow-x:auto;white-space:pre;max-height:220px;overflow-y:auto;margin-top:6px}
+.ib{background:#0c1a2e;border:1px solid #1d3a5e;border-radius:var(--r);padding:9px 10px;font-size:11px;line-height:1.6;color:#b0c4de;margin-bottom:10px}
+.ib b{color:var(--accent)}
+
+/* ─── v3.0 NEW STYLES ─────────────────────────────────────────── */
+
+/* Registration modal */
+#reg-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+#reg-modal.hidden{display:none}
+.reg-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 22px;width:310px;text-align:center}
+.reg-card .reg-icon{font-size:36px;margin-bottom:10px}
+.reg-card h2{font-size:15px;font-weight:700;margin-bottom:4px}
+.reg-card p{font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:16px}
+.reg-field{margin-bottom:10px;text-align:left}
+.reg-field label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px}
+.reg-field input{width:100%;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:12px;outline:none}
+.reg-field input:focus{border-color:var(--accent)}
+.reg-skip{font-size:10px;color:var(--muted);margin-top:10px;cursor:pointer;text-decoration:underline;background:none;border:none;color:var(--muted)}
+.reg-skip:hover{color:var(--text)}
+
+/* CAPTCHA alert banner */
+#captcha-banner{background:#2d1a00;border:1px solid var(--orange);border-radius:var(--r);padding:9px 12px;font-size:11px;line-height:1.6;color:#ffcc88;margin-bottom:8px;display:none}
+#captcha-banner.show{display:block}
+#captcha-banner b{color:var(--orange)}
+/* v7.1.29: cookie-wiper coexistence banner */
+#cookie-banner{background:#0e2a1c;border:1px solid #2ea043;border-radius:var(--r);padding:9px 12px;font-size:11px;line-height:1.6;color:#9ae6b4;margin-bottom:8px;display:none}
+#cookie-banner.show{display:block}
+#cookie-banner b{color:#56d364}
+#captcha-countdown{font-weight:700;color:var(--orange)}
+.cap-hint{font-size:10px;color:var(--muted);margin-top:3px}
+
+/* Keywords pane */
+.kw-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px}
+.kw-instr{font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:10px}
+.kw-instr b{color:var(--text)}
+.kw-instr em{color:var(--accent);font-style:normal}
+.kw-source-tabs{display:flex;gap:6px;margin-bottom:10px}
+.ksrc{flex:1;padding:6px 4px;font-size:10px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;text-align:center;transition:border-color .2s,color .2s}
+.ksrc.on{border-color:var(--accent);color:var(--accent);background:#111a2c}
+.kpane{display:none}.kpane.on{display:block}
+textarea#kw-paste{width:100%;height:72px;padding:7px 9px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:11px;resize:vertical;outline:none;margin-bottom:6px;font-family:monospace}
+textarea#kw-paste:focus{border-color:var(--accent)}
+textarea#kw-paste::placeholder{color:var(--muted)}
+.kw-file-area{border:2px dashed var(--border);border-radius:var(--r);padding:14px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:6px}
+.kw-file-area:hover{border-color:var(--accent)}
+.kw-file-area p{font-size:11px;color:var(--muted)}
+.kw-file-area b{color:var(--text)}
+input#kw-file{display:none}
+.kw-sheet-row{display:flex;gap:6px;margin-bottom:6px}
+.kw-sheet-row input{flex:1;padding:6px 9px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:11px;outline:none}
+.kw-sheet-row input:focus{border-color:var(--accent)}
+#kw-info{font-size:10px;color:var(--muted);margin-bottom:6px;min-height:14px}
+
+/* Settings section headers */
+.section-hdr{font-size:11px;font-weight:700;color:var(--accent);padding:6px 0 6px;border-bottom:1px solid var(--border);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em}
+
+/* Delay mode inline pill selector */
+.delay-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.dpill{padding:5px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;transition:border-color .2s,background .2s}
+.dpill.on{border-color:var(--accent);background:#1a2535;color:var(--text)}
+.dpill:hover:not(.on){border-color:#484f58;color:var(--text)}
+
+/* Work mode toggle */
+.wm-toggle{display:flex;gap:0;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-top:6px}
+.wmbtn{flex:1;padding:8px 10px;font-size:11px;font-weight:600;color:var(--muted);background:var(--card);border:none;cursor:pointer;transition:background .2s,color .2s;text-align:center}
+.wmbtn.on{background:var(--accent);color:#0d1117}
+.wmbtn:hover:not(.on){background:#252d3d;color:var(--text)}
+
+/* Results management buttons */
+.rmgt{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding:8px 12px;background:var(--card);border-top:1px solid var(--border)}
+.rmgt-lbl{font-size:10px;color:var(--muted);width:100%;margin-bottom:2px}
+
+/* Apollo / API section */
+.api-row{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.api-row label{font-size:11px;color:var(--muted);width:80px;flex-shrink:0}
+.api-row input{flex:1;padding:6px 9px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:11px;outline:none}
+.api-row input:focus{border-color:var(--accent)}
+.api-badge{font-size:9px;padding:2px 6px;border-radius:4px;background:#1a2535;color:var(--accent);font-weight:700;margin-left:4px}
+
+/* ─── v4.0 NEW STYLES ─────────────────────────────────────── */
+/* Team stats top grid */
+.team-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.ts-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:10px 6px;text-align:center}
+.ts-val{font-size:22px;font-weight:700;line-height:1}
+.ts-lbl{font-size:9px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.04em}
+.ts-card.act .ts-val{color:var(--green)}
+.ts-card.fnd .ts-val{color:var(--accent)}
+.ts-card.pnd .ts-val{color:var(--yellow)}
+/* Member card */
+.member-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.member-card.is-active{border-color:rgba(63,185,80,.5);background:#0d1f10}
+.member-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.member-dot.active{background:var(--green);box-shadow:0 0 5px var(--green);animation:pulse 1.5s ease-in-out infinite}
+.member-info{flex:1;min-width:0}
+.member-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.member-email{font-size:10px;color:var(--muted);margin-top:1px}
+.member-meta{font-size:10px;color:var(--muted);text-align:right;flex-shrink:0;line-height:1.6}
+.member-found{font-size:16px;font-weight:700;color:var(--accent);display:block}
+.role-badge{font-size:9px;padding:1px 5px;border-radius:4px;font-weight:700;display:inline-block;margin-top:2px}
+.role-admin{background:#1a3a2e;color:#56d364}.role-member{background:#1e2535;color:var(--muted)}.role-pending{background:#2e2a12;color:var(--yellow)}
+/* Pending approval cards */
+.pending-card{background:var(--card);border:1px solid var(--yellow);border-radius:var(--r);padding:10px 12px;margin-bottom:8px}
+.pending-card .pname{font-size:12px;font-weight:700}
+.pending-card .pemail{font-size:10px;color:var(--muted);margin-top:2px;margin-bottom:8px}
+.pending-btns{display:flex;gap:6px}
+/* Status banners */
+.status-notice{border-radius:var(--r);padding:9px 12px;font-size:11px;line-height:1.5;margin-bottom:10px;display:none}
+.status-notice.show{display:block}
+.notice-pending{background:#2d2a00;border:1px solid var(--yellow);color:#ffcc88}
+.notice-approved{background:#0d2d1a;border:1px solid var(--green);color:#7ee787}
+.notice-rejected{background:#2d0d0d;border:1px solid var(--red);color:#ffa0a0}
+/* db-duplicate result badge */
+.bdb{background:#1a1a35;color:#a79cff}
+/* 6-col stat grid */
+.sgrid-6{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:8px}
+
+/* ─── v5.0 NEW STYLES ─────────────────────────────────────── */
+/* Copyright footer */
+.copyright-footer{font-size:10px;color:var(--muted);text-align:center;padding:8px 12px 6px;border-top:1px solid var(--border);flex-shrink:0;background:var(--surface)}
+.copyright-footer a{color:var(--accent);text-decoration:none}
+.copyright-footer a:hover{text-decoration:underline}
+/* Email verification */
+.verify-row{display:flex;gap:6px;align-items:center;margin-top:6px}
+.verify-row input{flex:1;padding:6px 9px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:11px;outline:none;letter-spacing:3px;font-weight:700;text-align:center}
+.verify-row input:focus{border-color:var(--accent)}
+#verify-status{font-size:10px;color:var(--muted);margin-top:4px;min-height:14px}
+/* Guide panel */
+.guide-step{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
+.guide-step-num{display:inline-block;width:22px;height:22px;background:var(--accent);color:#0d1117;border-radius:50%;font-size:11px;font-weight:700;text-align:center;line-height:22px;margin-right:8px;flex-shrink:0}
+.guide-step-title{font-size:12px;font-weight:700;display:flex;align-items:center;margin-bottom:6px}
+.guide-step-body{font-size:11px;color:var(--muted);line-height:1.7;padding-left:30px}
+.guide-step-body b{color:var(--text)}
+.guide-step-body code{background:var(--bg);padding:1px 5px;border-radius:3px;font-size:10px;color:var(--accent)}
+.guide-note{background:#1a2a1a;border:1px solid var(--green);border-radius:var(--r);padding:10px 12px;font-size:11px;color:#7ee787;line-height:1.6;margin-bottom:10px}
+/* Automation settings */
+.lwf-select{width:100%;padding:6px 9px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:11px;outline:none;margin-top:4px;margin-bottom:8px}
+.lwf-select:focus{border-color:var(--accent)}
+/* Block/unblock in member cards */
+.member-admin-btns{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+/* Premium badge */
+.plan-badge{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;background:#2a1a35;color:#bc8cff;border:1px solid rgba(188,140,255,.4)}
+/* Download queue button area */
+.queue-dl-row{display:flex;gap:6px;margin-top:4px;margin-bottom:2px}
+
+/* ─── v5.8 AUTH STYLES ─────────────────────────────────── */
+/* DB Setup Required overlay */
+#db-setup-overlay{position:fixed;inset:0;background:rgba(6,10,18,.98);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+#db-setup-overlay.hidden{display:none}
+.setup-card{background:var(--surface);border:1px solid #1d3a5e;border-radius:14px;padding:28px 24px;width:320px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+.setup-card .setup-icon{font-size:44px;margin-bottom:12px}
+.setup-card h2{font-size:16px;font-weight:700;margin-bottom:6px}
+.setup-card .setup-sub{font-size:11px;color:var(--muted);margin-bottom:18px;line-height:1.7}
+.setup-step{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:8px;text-align:left;font-size:11px;line-height:1.6}
+.setup-step b{color:var(--accent)}.setup-step code{background:var(--bg);padding:1px 5px;border-radius:3px;font-size:10px;color:#79c0ff}
+/* Login overlay — full screen */
+#login-overlay{position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+#login-overlay.hidden{display:none}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 24px;width:320px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.auth-card .auth-icon{font-size:40px;margin-bottom:12px}
+.auth-card h2{font-size:16px;font-weight:700;margin-bottom:4px}
+.auth-card .auth-sub{font-size:11px;color:var(--muted);margin-bottom:18px;line-height:1.6}
+.auth-field{margin-bottom:10px;text-align:left}
+.auth-field label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px}
+.auth-field input{width:100%;padding:9px 11px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:12px;outline:none;transition:border-color .2s}
+.auth-field input:focus{border-color:var(--accent)}
+.auth-msg{font-size:11px;margin-top:8px;min-height:16px;text-align:center;line-height:1.5}
+.auth-msg.ok{color:var(--green)}.auth-msg.er{color:var(--red)}.auth-msg.in{color:var(--accent)}.auth-msg.wa{color:#e3b341}
+.auth-link{font-size:10px;color:var(--muted);margin-top:10px;cursor:pointer;background:none;border:none;display:block;width:100%;text-align:center}
+.auth-link:hover{color:var(--text);text-decoration:underline}
+.auth-divider{border:none;border-top:1px solid var(--border);margin:14px 0}
+/* Auth sub-views (steps inside overlay) */
+.auth-view{display:none}.auth-view.on{display:block}
+/* Modal (for add-user + user-action) */
+.v58-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:11000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.v58-modal.hidden{display:none}
+.v58-modal-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 20px;width:300px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.v58-modal-card h3{font-size:14px;font-weight:700;margin-bottom:4px}
+.v58-modal-card .modal-sub{font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6}
+.modal-field{margin-bottom:8px;text-align:left}
+.modal-field label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px}
+.modal-field input{width:100%;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:12px;outline:none}
+.modal-field input:focus{border-color:var(--accent)}
+.modal-btn-row{display:flex;gap:8px;margin-top:14px}
+.modal-btn-row .btn{flex:1;justify-content:center}
+.modal-msg{font-size:11px;margin-top:8px;min-height:14px;text-align:center}
+.modal-msg.ok{color:var(--green)}.modal-msg.er{color:var(--red)}
+/* User action modal info */
+.ua-user-info{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:12px;text-align:left}
+.ua-user-name{font-size:13px;font-weight:700}
+.ua-user-email{font-size:10px;color:var(--muted);margin-top:2px}
+.ua-user-status{margin-top:6px}
+/* Admin member card clickable */
+.member-card.admin-clickable{cursor:pointer;transition:border-color .2s,background .2s}
+.member-card.admin-clickable:hover{border-color:var(--accent);background:#1a2535}
+/* Logout button in header */
+#btn-logout{font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;white-space:nowrap;transition:border-color .2s,color .2s}
+#btn-logout:hover{border-color:var(--red);color:var(--red)}
+
+/* v6.0 additions */
+.v6-scrape-btn{padding:4px 10px;border-radius:5px;border:none;cursor:pointer;font-size:11px;}
+.v6-btn-stop{background:#3a1a1a;color:#ff8080;}
+.v6-btn-pause{background:#2a2a1a;color:#ffd080;}
+.v6-btn-restart{background:#1a2a1a;color:#80d080;}
+.v6-ua-btn{display:block;width:100%;padding:8px;margin:4px 0;border-radius:6px;border:1px solid #3a4060;background:#1e2538;color:#c0cce0;cursor:pointer;text-align:left;font-size:13px;}
+.v6-ua-btn:hover{background:#2a3050;}
+/* v6: results website masking */
+.v6-hidden-website{color:#555;font-style:italic;}
+/* ══ v7.0.15: WhatsApp-style calling + inbox ══ */
+#v7-call-admin-btn{background:linear-gradient(135deg,#075e54,#128c7e);color:#fff;border:none;box-shadow:0 3px 14px rgba(7,94,84,.4);border-radius:10px}
+#v7-call-admin-btn:hover{background:linear-gradient(135deg,#128c7e,#25d366)}
+#v7-incoming-call-popup{background:linear-gradient(160deg,#0a2a1a 0%,#075e54 40%,#0d2a15 100%)}
+.v7-call-popup-inner{background:transparent;border:none;box-shadow:none;max-width:100%;padding:24px 28px;width:100%}
+.v7-call-avatar-circle{width:88px;height:88px;background:linear-gradient(135deg,#25d366,#128c7e);font-size:32px;font-weight:700;color:#fff;box-shadow:0 0 0 5px rgba(37,211,102,.25)}
+.v7-call-ring-anim{width:128px;height:128px}
+.v7-call-ring-wave{border-color:rgba(37,211,102,.55)}
+.v7-call-caller-name{font-size:22px;font-weight:700;color:#fff;margin:18px 0 5px}
+.v7-call-sub{font-size:12px;color:rgba(255,255,255,.65);margin-bottom:36px;display:flex;align-items:center;justify-content:center;gap:7px}
+.v7-call-sub-dot{width:7px;height:7px;background:#25d366;border-radius:50%;display:inline-block;flex-shrink:0;animation:v7SubDotPulse 1.2s ease-in-out infinite}
+@keyframes v7SubDotPulse{0%,100%{opacity:1}50%{opacity:.15}}
+.v7-call-action-row{gap:60px}
+.v7-call-circle-btn{width:66px;height:66px;font-size:26px}
+.v7-call-accept{background:radial-gradient(circle,#25d366,#128c7e);box-shadow:0 5px 22px rgba(37,211,102,.6)}
+.v7-call-accept:hover{box-shadow:0 7px 28px rgba(37,211,102,.75);transform:scale(1.06)}
+.v7-call-decline{background:radial-gradient(circle,#f44336,#b71c1c);box-shadow:0 5px 22px rgba(244,67,54,.55)}
+.v7-call-decline:hover{box-shadow:0 7px 28px rgba(244,67,54,.7);transform:scale(1.06)}
+.v7-call-action-label{font-size:11px;color:rgba(255,255,255,.75);font-weight:500}
+#v7-active-call-bar{background:linear-gradient(180deg,#0d1f0d,#0a1a0a);border-top-color:#25d366;box-shadow:0 -4px 20px rgba(37,211,102,.2);padding:12px 16px}
+.v7-call-bar-avatar{width:40px;height:40px;background:linear-gradient(135deg,#25d366,#128c7e);font-size:14px;font-weight:700;color:#fff}
+.v7-call-status-text{font-size:10px;color:rgba(255,255,255,.6);margin-top:1px}
+.v7-call-timer{color:#25d366;font-weight:600}
+.v7-ctrl-mute{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.25)}
+.v7-ctrl-mute.muted{background:#f44336;border-color:#f44336}
+.v7-ctrl-hangup{background:radial-gradient(circle,#f44336,#c62828);box-shadow:0 3px 12px rgba(244,67,54,.5)}
+.v7-ctrl-hangup:hover{box-shadow:0 5px 18px rgba(244,67,54,.7)}
+.v7-ctrl-speaker{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.25)}
+.v7-ctrl-speaker.speakeron{background:#25d366;border-color:#25d366}
+#v7-outgoing-call-overlay{display:none;position:fixed;inset:0;background:linear-gradient(160deg,#0a1a2a,#0d2d4a 40%,#0a1a2a);z-index:10000;flex-direction:column;align-items:center;justify-content:center}
+#v7-outgoing-call-overlay.active{display:flex}
+.v7-out-ring-anim{position:relative;width:128px;height:128px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center}
+.v7-out-ring-wave{position:absolute;inset:0;border-radius:50%;border:2.5px solid rgba(88,166,255,.4);animation:v7RingPulse 1.8s ease-out infinite}
+.v7-out-avatar{width:88px;height:88px;background:linear-gradient(135deg,#2d5abe,#1a3a8a);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:#fff;z-index:1;position:relative;box-shadow:0 0 0 5px rgba(88,166,255,.25)}
+.v7-out-name{font-size:22px;font-weight:700;color:#fff;margin:18px 0 6px;text-align:center}
+.v7-out-status{font-size:12px;color:rgba(255,255,255,.6);margin-bottom:40px}
+.v7-out-end-btn{width:66px;height:66px;border-radius:50%;border:none;background:radial-gradient(circle,#f44336,#c62828);color:#fff;font-size:26px;cursor:pointer;box-shadow:0 5px 22px rgba(244,67,54,.55);display:flex;align-items:center;justify-content:center}
+.v7-out-end-label{font-size:10px;color:rgba(255,255,255,.5);margin-top:10px}
+.v7-calls-subtab{flex:1;flex-direction:column;overflow:hidden;display:none;background:#0a0d14}
+.v7-calls-subtab.active{display:flex}
+.v7-calls-member-row{display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid #1a2040;cursor:default}
+.v7-calls-member-row:hover{background:#111827}
+.v7-calls-member-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1a3a6a,#0d2040);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#88bbff;flex-shrink:0}
+.v7-calls-member-name{flex:1;font-size:12px;font-weight:600;color:#cdd9e5}
+.v7-calls-member-email{font-size:10px;color:#5a7090}
+.v7-call-btn-sm{padding:5px 12px;font-size:11px;font-weight:700;background:linear-gradient(135deg,#075e54,#128c7e);color:#fff;border:none;border-radius:6px;cursor:pointer}
+.v7-call-btn-sm:hover{background:linear-gradient(135deg,#128c7e,#25d366)}
+.v7-call-btn-sm:disabled{background:#1a2a1a;color:#445;cursor:not-allowed}
+/* v7.0.27 inbox CSS */
+#v7-inbox-threads-panel,#v7-inbox-chat-panel{flex:1;flex-direction:column;overflow:hidden}
+#v7-inbox-thread-list{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+#v7-inbox-thread-list.hidden{display:none}
+.v7-inbox-thread-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid #1a2040;cursor:pointer}
+.v7-inbox-thread-item:hover{background:#111827}
+.v7-inbox-thread-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#1a3050,#0d2040);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#88bbff;flex-shrink:0;position:relative}
+.v7-inbox-thread-unread-dot{position:absolute;top:0;right:0;width:10px;height:10px;background:#25d366;border-radius:50%;border:2px solid #0a0d14}
+.v7-inbox-unread-badge{position:absolute;top:-4px;right:-4px;background:#25d366;color:#000;font-size:9px;font-weight:800;border-radius:10px;padding:1px 4px;min-width:16px;text-align:center}
+.v7-inbox-thread-info{flex:1;min-width:0}
+.v7-inbox-thread-name{font-size:12px;font-weight:700;color:#e6edf3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v7-inbox-thread-preview{font-size:10px;color:#5a7090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.v7-inbox-thread-time{font-size:9px;color:#445;flex-shrink:0}
+#v7-inbox-back-btn{display:none;align-items:center;gap:6px;padding:8px 13px;border-bottom:1px solid #1a2040;cursor:pointer;background:#0f1520}
+#v7-inbox-back-btn:hover{background:#1a2030}
+#v7-inbox-back-btn span{font-size:11px;color:#58a6ff;font-weight:600}
+.v7-ua-call-btn{padding:8px 10px;font-size:11px;background:linear-gradient(135deg,#075e54,#128c7e);color:#fff;border:none;border-radius:5px;cursor:pointer;font-weight:700;width:100%;text-align:center}
+.v7-ua-call-btn:hover{background:linear-gradient(135deg,#128c7e,#25d366)}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     v3.0: REGISTRATION MODAL (shown first-time only)
+══════════════════════════════════════════════════════ -->
+<div id="reg-modal" class="hidden">
+  <div class="reg-card">
+    <div class="reg-icon">🔍</div>
+    <h2>Welcome to Source Genius</h2>
+    <p>Enter your name and email to personalize your CSV exports and track usage. Your data stays local in this browser.</p>
+    <div class="reg-field">
+      <label>Your Name</label>
+      <input type="text" id="reg-name" placeholder="e.g. Muhammad Shahid" autocomplete="name"/>
+    </div>
+    <div class="reg-field">
+      <label>Email Address</label>
+      <input type="email" id="reg-email" placeholder="e.g. shahid@example.com" autocomplete="email"/>
+    </div>
+    <button class="btn p" id="breg-save" style="width:100%;justify-content:center">✅ Register &amp; Continue</button>
+    <div id="reg-status" style="font-size:10px;color:var(--muted);margin-top:8px;min-height:14px;text-align:center"></div>
+    <div id="verify-section" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px">
+        📧 <b>Email verification required.</b> Click the button below to receive a 6-digit code at your email address, then enter it to activate your account.
+      </div>
+      <button class="btn p" id="bsend-verify-email" style="width:100%;justify-content:center;margin-bottom:8px">📧 Send Verification Email</button>
+      <div style="font-size:10px;color:var(--muted);text-align:center;margin-bottom:6px">Already have a code? Enter it below:</div>
+      <div class="verify-row">
+        <input type="text" id="verify-code" placeholder="000000" maxlength="6" inputmode="numeric"/>
+        <button class="btn s sm" id="bverify-code">✅ Verify</button>
+      </div>
+      <div id="verify-status" style="font-size:10px;margin-top:6px;text-align:center;min-height:14px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     v5.9: DATABASE SETUP REQUIRED OVERLAY
+     Shown on every launch until DB URL + Secret are saved.
+     Blocks ALL extension use until properly configured.
+══════════════════════════════════════════════════════ -->
+<div id="db-setup-overlay">
+  <div class="setup-card">
+    <div class="setup-icon">🔒</div>
+    <h2>Database Setup Required</h2>
+    <p class="setup-sub">
+      This extension is locked until you connect it to your team database.<br>
+      <b style="color:var(--accent)">No guest access. No workaround.</b>
+    </p>
+    <div class="setup-step">
+      <b>Step 1 — Deploy companion.gs</b><br>
+      In your Google Sheet → <b>Extensions → Apps Script</b> → paste <code>companion.gs</code> → Run <code>setupSheet()</code>
+    </div>
+    <div class="setup-step">
+      <b>Step 2 — Deploy as Web App</b><br>
+      Deploy → New Deployment → Web App → Execute as: Me → Access: Anyone → copy URL + App Secret
+    </div>
+    <div class="setup-step">
+      <b>Step 3 — Enter credentials below</b><br>
+      Click <b>⚙️ Open Settings</b> → paste Database URL + App Secret → click <b>💾 Save All Settings</b>
+    </div>
+    <button class="btn p" id="btn-setup-goto-settings" style="width:100%;justify-content:center;margin-top:6px">⚙️ Open Settings to Configure</button>
+    <div style="font-size:10px;color:var(--muted);margin-top:10px;line-height:1.5">
+      After saving valid credentials, you will be prompted to sign in.<br>
+      Contact your admin if you need access.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     v5.8: LOGIN OVERLAY (shown until session verified)
+══════════════════════════════════════════════════════ -->
+<div id="login-overlay" class="hidden">
+
+  <!-- VIEW: Login form -->
+  <div class="auth-card" id="av-login">
+    <div class="auth-icon">🔍</div>
+    <h2>Source Genius</h2>
+    <p class="auth-sub">Sign in to your account to continue</p>
+    <!-- First-time hint -->
+    <div id="login-firsttime-hint" style="background:#0c1a2e;border:1px solid #1d3a5e;border-radius:6px;padding:8px 10px;font-size:10px;color:#b0c4de;line-height:1.6;margin-bottom:12px;text-align:left;display:none">
+      <b style="color:var(--accent)">🆕 First time signing in?</b><br>
+      Enter your email and click <b>Sign In</b> — if you have no password yet, you'll be prompted to create one automatically.<br>
+      <span style="color:var(--muted)">No account yet? Ask your admin to add you via the 👥 Team tab.</span>
+    </div>
+    <div class="auth-field"><label>Email</label>
+      <input type="email" id="login-email" placeholder="your@email.com" autocomplete="email"/>
+    </div>
+    <div class="auth-field"><label>Password <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:9px">(leave blank if first time)</span></label>
+      <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password"/>
+    </div>
+    <!-- v7.0.7: Remember Me + saved credentials -->
+    <div id="login-remember-row" style="display:flex;align-items:center;gap:7px;margin:6px 0 2px;padding:0 1px">
+      <input type="checkbox" id="login-remember" style="cursor:pointer;accent-color:#58a6ff;width:13px;height:13px">
+      <label for="login-remember" style="font-size:11px;color:#8090a0;cursor:pointer;user-select:none">Remember me</label>
+      <span id="login-saved-badge" style="display:none;margin-left:auto;font-size:10px;color:#3fb950;background:#0f2a0f;border:1px solid #2a5a2a;border-radius:4px;padding:1px 6px">✓ saved</span>
+    </div>
+    <button class="btn p" id="btn-do-login" style="width:100%;justify-content:center;margin-top:4px">🔓 Sign In</button>
+    <div class="auth-msg" id="login-msg"></div>
+    <button class="auth-link" id="btn-show-forgot">Forgot password? Reset it here</button>
+    <button class="auth-link" id="btn-show-register">📋 New User? Register here</button>
+  </div>
+
+  <!-- VIEW: First-time set password -->
+  <div class="auth-card" id="av-setpwd" style="display:none">
+    <div class="auth-icon">🔑</div>
+    <h2>Set Your Password</h2>
+    <p class="auth-sub" id="setpwd-sub">Welcome! Please create a password for your account.</p>
+    <div class="auth-field"><label>Email</label>
+      <input type="email" id="setpwd-email" readonly style="opacity:.7"/>
+    </div>
+    <div class="auth-field"><label>New Password <span style="font-weight:400;text-transform:none;letter-spacing:0">(min 6 chars)</span></label>
+      <input type="password" id="setpwd-pwd1" placeholder="Create a password" autocomplete="new-password"/>
+    </div>
+    <div class="auth-field"><label>Confirm Password</label>
+      <input type="password" id="setpwd-pwd2" placeholder="Repeat password" autocomplete="new-password"/>
+    </div>
+    <div class="auth-field" id="setpwd-code-row" style="display:none"><label>Reset Code (from email)</label>
+      <input type="text" id="setpwd-code" placeholder="6-digit code" maxlength="6" inputmode="numeric" style="text-align:center;letter-spacing:3px;font-weight:700"/>
+    </div>
+    <button class="btn p" id="btn-do-setpwd" style="width:100%;justify-content:center;margin-top:4px">✅ Save Password &amp; Login</button>
+    <div class="auth-msg" id="setpwd-msg"></div>
+    <button class="auth-link" id="btn-back-login-from-setpwd">← Back to login</button>
+  </div>
+
+  <!-- VIEW: Forgot password -->
+  <div class="auth-card" id="av-forgot" style="display:none">
+    <div class="auth-icon">📧</div>
+    <h2>Reset Password</h2>
+    <p class="auth-sub">Enter your email and we'll send a 6-digit reset code.</p>
+    <div class="auth-field"><label>Email</label>
+      <input type="email" id="forgot-email" placeholder="your@email.com" autocomplete="email"/>
+    </div>
+    <button class="btn p" id="btn-send-reset" style="width:100%;justify-content:center">📧 Send Reset Code</button>
+    <div class="auth-msg" id="forgot-msg"></div>
+    <div id="forgot-step2" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+      <p style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5">✅ Code sent! Check your inbox and enter it below with your new password.</p>
+      <div class="auth-field"><label>New Password</label>
+        <input type="password" id="forgot-pwd1" placeholder="New password" autocomplete="new-password"/>
+      </div>
+      <div class="auth-field"><label>Reset Code</label>
+        <input type="text" id="forgot-code" placeholder="6-digit code" maxlength="6" inputmode="numeric" style="text-align:center;letter-spacing:3px;font-weight:700"/>
+      </div>
+      <button class="btn s" id="btn-do-reset" style="width:100%;justify-content:center">✅ Set New Password &amp; Login</button>
+      <div class="auth-msg" id="forgot-step2-msg"></div>
+    </div>
+    <button class="auth-link" id="btn-back-login-from-forgot">← Back to login</button>
+  </div>
+
+
+
+  <!-- v7.0.15 AUTH VIEWS -->
+  <div class="auth-card" id="av-db-entry" style="display:none">
+    <div class="auth-icon">&#x1F50C;</div>
+    <h2>Connect to Database</h2>
+    <p class="auth-sub">Enter the Database URL and App Secret provided by your admin.</p>
+    <div class="auth-field"><label>Database URL</label>
+      <input type="url" id="dbentry-url" placeholder="https://script.google.com/…/exec" autocomplete="off" style="font-size:10px"/>
+    </div>
+    <div class="auth-field"><label>App Secret</label>
+      <input type="password" id="dbentry-secret" placeholder="App secret key" autocomplete="off"/>
+    </div>
+    <button class="btn p" id="btn-do-db-validate" style="width:100%;justify-content:center;margin-top:6px">&#x1F50C; Validate &amp; Continue</button>
+    <div class="auth-msg" id="dbentry-msg"></div>
+  </div>
+
+  <div class="auth-card" id="av-register" style="display:none">
+    <div class="auth-icon">&#x1F4DD;</div>
+    <h2>Create Account</h2>
+    <p class="auth-sub">Your login password will be emailed once the admin approves your account.</p>
+    <div class="auth-field"><label>Full Name</label>
+      <input type="text" id="sreg-name" placeholder="Your full name" autocomplete="name"/>
+    </div>
+    <div class="auth-field"><label>Email Address</label>
+      <input type="email" id="sreg-email" placeholder="your@email.com" autocomplete="email"/>
+    </div>
+    <div class="auth-field"><label>Phone <span style="font-weight:400;font-size:9px">(optional)</span></label>
+      <input type="tel" id="sreg-phone" placeholder="+1 555 000 0000" autocomplete="tel"/>
+    </div>
+    <div class="auth-field"><label>Referred By (Name) <span style="font-weight:400;font-size:9px;color:#f0a000">(required)</span></label>
+      <input type="text" id="sreg-referral" placeholder="Name of person who referred you" autocomplete="off"/>
+    </div>
+    <button class="btn p" id="btn-do-register" style="width:100%;justify-content:center;margin-top:8px">&#x1F4E7; Register &amp; Send Verification Code</button>
+    <div class="auth-msg" id="sreg-msg"></div>
+    <button class="auth-link" id="btn-back-from-register">&#x2190; Back to Sign In</button>
+  </div>
+
+  <div class="auth-card" id="av-verify-reg" style="display:none">
+    <div class="auth-icon">&#x1F4E7;</div>
+    <h2>Verify Your Email</h2>
+    <p class="auth-sub">Enter the 6-digit code sent to your email.</p>
+    <div class="auth-field"><label>Email</label>
+      <input type="email" id="vreg-email" readonly style="opacity:.7"/>
+    </div>
+    <div class="auth-field"><label>Verification Code</label>
+      <input type="text" id="vreg-code" placeholder="6-digit code" maxlength="6" inputmode="numeric"
+             style="text-align:center;letter-spacing:4px;font-weight:700;font-size:18px"/>
+    </div>
+    <button class="btn p" id="btn-do-verify-reg" style="width:100%;justify-content:center;margin-top:4px">&#x2705; Verify Email</button>
+    <div class="auth-msg" id="vreg-msg"></div>
+    <button class="auth-link" id="btn-back-from-verify">&#x2190; Back</button>
+  </div>
+
+  <div class="auth-card" id="av-pending-reg" style="display:none">
+    <div class="auth-icon">&#x23F3;</div>
+    <h2>Awaiting Approval</h2>
+    <p class="auth-sub">Your email is verified. The admin will review your account and email you when approved.</p>
+    <button class="auth-link" id="btn-pending-back-login">&#x2190; Back to Sign In</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     v5.8: ADMIN — ADD NEW USER MODAL
+══════════════════════════════════════════════════════ -->
+<div id="add-user-modal" class="v58-modal hidden">
+  <div class="v58-modal-card">
+
+    <!-- Step 1: enter name + email -->
+    <div id="add-user-step1">
+      <h3>➕ Add New Team Member</h3>
+      <p class="modal-sub">Enter the new member's details. They'll receive login credentials by email.</p>
+      <div class="modal-field"><label>Full Name</label>
+        <input type="text" id="adduser-name" placeholder="e.g. John Smith"/>
+      </div>
+      <div class="modal-field"><label>Email Address</label>
+        <input type="email" id="adduser-email" placeholder="john@example.com"/>
+      </div>
+      <div class="modal-btn-row">
+        <button class="btn g" id="btn-adduser-cancel">Cancel</button>
+        <button class="btn p" id="btn-adduser-send">➡ Send Code</button>
+      </div>
+      <div class="modal-msg" id="adduser-msg"></div>
+    </div>
+
+    <!-- Step 2: enter verification code -->
+    <div id="add-user-step2" style="display:none">
+      <h3>✉️ Verify Addition</h3>
+      <p class="modal-sub" id="adduser-step2-sub">A 6-digit code was sent to your admin email. Enter it below to confirm adding the new member.</p>
+      <div class="modal-field"><label>Verification Code</label>
+        <input type="text" id="adduser-code" placeholder="000000" maxlength="6" inputmode="numeric" style="text-align:center;letter-spacing:4px;font-weight:700;font-size:18px"/>
+      </div>
+      <div class="modal-btn-row">
+        <button class="btn g" id="btn-adduser-back">← Back</button>
+        <button class="btn s" id="btn-adduser-confirm">✅ Confirm</button>
+      </div>
+      <div class="modal-msg" id="adduser-code-msg"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     v5.8: ADMIN — USER ACTION MODAL (click on user card)
+══════════════════════════════════════════════════════ -->
+<div id="user-action-modal" class="v58-modal hidden">
+  <div class="v58-modal-card">
+    <h3>👤 Manage Member</h3>
+    <div class="ua-user-info">
+      <div class="ua-user-name" id="ua-name"></div>
+      <div class="ua-user-email" id="ua-email"></div>
+      <div class="ua-user-status" id="ua-status-badge"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn w" id="ua-btn-suspend" style="justify-content:center">⏸ Suspend Access</button>
+      <button class="btn d" id="ua-btn-block" style="justify-content:center">🚫 Block Account</button>
+      <button class="btn s" id="ua-btn-restore" style="justify-content:center">✅ Restore to Active</button>
+      <button class="btn d" id="ua-btn-delete" style="justify-content:center;background:#5a0000;border-color:#5a0000">🗑 Delete Member</button>
+      <button id="v6-ua-hide-websites" class="v6-ua-btn" data-action="hideWebsites">🙈 Hide Website Results</button>
+      <button id="v6-ua-show-websites" class="v6-ua-btn" data-action="showWebsites">👁 Show Website Results</button>
+      <button class="v6-ua-act-btn v6-ua-btn" data-action="hideActivity">🔕 Hide Activity Log</button>
+      <button class="v6-ua-act-btn v6-ua-btn" data-action="showActivity">🔔 Show Activity Log</button>
+      <!-- v7.0.2: Brand search toggle -->
+      <button id="v7-ua-enable-brand-search"  style="padding:6px 10px;font-size:11px;background:#1a2a1a;color:#80dd80;border:1px solid #2a5a2a;border-radius:5px;cursor:pointer;">🌐 Enable Brand Finder</button>
+      <button id="v7-ua-disable-brand-search" style="padding:6px 10px;font-size:11px;background:#2a1a1a;color:#ff9090;border:1px solid #5a2a2a;border-radius:5px;cursor:pointer;">🚫 Disable Brand Finder</button>
+      <!-- v6.0.3: Send announcement to ALL users -->
+      <button id="v6-ua-send-msg" style="padding:6px 10px;font-size:11px;background:#1a2a3a;color:#88ccff;border:1px solid #3a5a7a;border-radius:5px;cursor:pointer;font-weight:600;">📢 Send Announcement</button>
+      <!-- v7.0.2: Send private inbox message to this user -->
+      <button id="v7-ua-send-inbox-msg" style="padding:6px 10px;font-size:11px;background:#1a3a1a;color:#7ee787;border:1px solid #2a6a2a;border-radius:5px;cursor:pointer;font-weight:600;">📥 Send Private Inbox Message</button>
+      <!-- v6.0.4: Chat kick/mute controls -->
+      <button class="v6-chat-ua-btn" data-chataction="mute"   style="padding:6px 10px;font-size:11px;background:#2a1a1a;color:#ff9090;border:1px solid #5a2a2a;border-radius:5px;cursor:pointer;">🔇 Mute from Chat</button>
+      <button class="v6-chat-ua-btn" data-chataction="unmute" style="padding:6px 10px;font-size:11px;background:#1a2a1a;color:#90cc90;border:1px solid #2a5a2a;border-radius:5px;cursor:pointer;">🔊 Unmute from Chat</button>
+      <button class="v6-chat-ua-btn" data-chataction="kick"   style="padding:6px 10px;font-size:11px;background:#3a0a0a;color:#ff6060;border:1px solid #6a1a1a;border-radius:5px;cursor:pointer;font-weight:600;">⛔ Kick from Chat</button>
+      <button class="v6-chat-ua-btn" data-chataction="unkick" style="padding:6px 10px;font-size:11px;background:#1a2a1a;color:#80dd80;border:1px solid #2a5a2a;border-radius:5px;cursor:pointer;">✅ Restore Chat Access</button>
+    </div>
+    <!-- v7.0.2: Quick inbox message compose (shown when admin clicks Send Private Inbox Message) -->
+    <div id="v7-ua-inbox-compose" style="display:none;margin-top:10px;background:#0a1a0a;border:1px solid #2a5a2a;border-radius:8px;padding:10px">
+      <div style="font-size:11px;color:#7ee787;font-weight:700;margin-bottom:6px">📥 Private Inbox Message</div>
+      <textarea id="v7-ua-inbox-text" placeholder="Type your private message…" style="width:100%;resize:none;background:#1a2a1a;border:1px solid #2a5a2a;border-radius:6px;color:#cdd9e5;font-size:12px;padding:7px;min-height:60px;outline:none;box-sizing:border-box;font-family:inherit" rows="3"></textarea>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button id="v7-ua-inbox-send-btn" class="btn g sm" style="flex:1">📤 Send to Inbox</button>
+        <button id="v7-ua-inbox-cancel-btn" class="btn sm" style="background:#2a1a1a;color:#ff9090;border:1px solid #5a2a2a">✕ Cancel</button>
+      </div>
+    </div>
+    <div class="modal-msg" id="ua-msg"></div>
+    <button class="btn g" id="ua-btn-close" style="width:100%;justify-content:center;margin-top:10px">✕ Close</button>
+  </div>
+</div>
+
+<!-- v6.0.3: Announcement banner — fixed at top, shown when active announcements exist -->
+<div id="v6-ann-banner" role="alert">
+  <span class="ann-icon" id="v6-ann-icon">📢</span>
+  <span class="ann-text" id="v6-ann-text"></span>
+  <a class="ann-link" id="v6-ann-link" href="#" target="_blank" rel="noopener" style="display:none"></a>
+  <button class="ann-dismiss" id="v6-ann-dismiss" title="Dismiss">✕</button>
+</div>
+
+<!-- Header -->
+<div id="hdr">
+  <span class="logo">🔍</span>
+  <div class="hd">
+    <div class="htitle">Source Genius <span class="vbadge">v7.1.29</span></div>
+    <div class="hsub">Brand Website Finder · Keyword Scraping · Lead Generation</div>
+  </div>
+  <!-- v5.8: user badge + logout -->
+  <span id="user-badge" title="Not logged in">🔒 Locked</span>
+  <button id="btn-logout" title="Logout" style="display:none">🚪</button>
+  <div id="sdot" title="Idle"></div>
+</div>
+
+<!-- Main tabs -->
+<div id="tabs">
+  <button class="tb on" data-tab="agent">⚡ Agent</button>
+  <button class="tb"    data-tab="results">📋 Results</button>
+  <button class="tb"    data-tab="config">⚙️ Settings</button>
+  <button class="tb"    data-tab="team" style="position:relative;">👥 Team<span id="v6-ann-tab-dot" style="position:absolute;top:5px;right:5px;"></span></button>
+  <button class="tb"    data-tab="guide">📖 Guide</button>
+</div>
+
+<div id="panels">
+
+  <!-- ══════════════ AGENT PANEL ══════════════ -->
+  <div class="pnl on" id="agent-panel">
+    <div class="scr">
+
+      <!-- v7.1.29: cookie-wiper coexistence banner -->
+      <div id="cookie-banner">
+        <b>🛡️ Another extension is clearing your cookies</b><br>
+        <span>An extension (e.g. "Auto Clear Browsing Data") wiped your Amazon session mid-run. Source Genius is auto-restoring it every few seconds so the run keeps working.</span>
+        <span class="cap-hint">For best speed, add <b>amazon.com</b> to that extension's whitelist/allowlist so it stops clearing Amazon.</span>
+      </div>
+
+      <!-- v3: CAPTCHA alert banner -->
+      <div id="captcha-banner">
+        <b>🚨 CAPTCHA Detected!</b> Google has shown a robot-check page.<br>
+        <span>The tab has been brought to front — please solve it manually.</span>
+        <span class="cap-hint">Auto-resuming in <b id="captcha-countdown">—</b> seconds · Or solve and click Resume ▶</span>
+      </div>
+
+      <!-- Mode selector -->
+      <div class="lbl" style="margin-top:2px">Processing Speed</div>
+      <div id="mgrid">
+        <div class="mc" data-mode="fast">    <span class="mi">⚡</span><div class="mn">Fast</div>    <div class="ms">~80/hr</div></div>
+        <div class="mc sel" data-mode="balanced"><span class="mi">⚖️</span><div class="mn">Balanced</div><div class="ms">~45/hr</div></div>
+        <div class="mc" data-mode="accurate"><span class="mi">🎯</span><div class="mn">Accurate</div><div class="ms">~22/hr</div></div>
+        <div class="mc" data-mode="stealth"> <span class="mi">🥷</span><div class="mn">Stealth</div> <div class="ms">~8/hr</div></div>
+        <div class="mc" data-mode="agent">   <span class="mi">🤖</span><div class="mn">Agent</div>   <div class="ms">~18/hr</div></div>
+      </div>
+      <div id="mdesc"></div>
+
+      <!-- v7.1.12: Amazon market selector (multi-marketplace) -->
+      <div id="sg-market-bar" style="margin:7px 0 2px"></div>
+
+      <!-- v7.1.15: parallel-tabs control — how many Amazon tabs the scraper +
+           website-finder open AT ONCE (member-controlled, 1–500) -->
+      <div id="sg-partabs-bar" style="margin:7px 0 2px">
+        <label style="font-size:11px;color:#8b949e;display:flex;align-items:center;gap:8px">⚡ Tabs at once
+          <input type="range"  id="partabs-range" min="1" max="10" value="2" style="flex:1;accent-color:var(--orange)"/>
+          <input type="number" id="partabs-num"   min="1" max="10" value="2" style="width:56px;text-align:center;background:#0d1117;color:#e6edf3;border:1px solid #30363d;border-radius:5px;padding:3px 4px;font-size:12px;font-weight:700;outline:none"/>
+        </label>
+        <div style="font-size:9px;color:#6a7480;margin-top:1px">Concurrent workers (1–10). 🐢 Slow net / anti-CAPTCHA: 2–3 · ⚡ Fast: up to 10. Above 10 triggers Amazon CAPTCHAs — hard capped at 10.</div>
+      </div>
+
+      <!-- Input mode sub-tabs — v3: added Keywords tab -->
+      <div class="itabs">
+        <button class="itb on" data-ipane="paste">📋 Paste ASINs</button>
+        <button class="itb"    data-ipane="scraper">🕷️ Amazon Scraper</button>
+        <button class="itb"    data-ipane="keywords">🔑 Keywords</button>
+      </div>
+
+      <!-- PASTE PANE (v2.0 unchanged) -->
+      <div class="ipane on" id="ipane-paste">
+        <textarea id="ain" placeholder="Paste Amazon URLs or ASINs — one per line&#10;&#10;https://www.amazon.com/dp/B0CXYZ12AB&#10;B0CXYZ12AB"></textarea>
+        <div class="irow">
+          <button class="btn g sm" id="bpaste">📋 Paste Clipboard</button>
+          <button class="btn g sm" id="bsheet">📊 From Sheet</button>
+          <select class="csel" id="scol" title="Sheet column with ASINs">
+            <option>Col A</option><option>Col B</option><option selected>Col C</option><option>Col D</option><option>Col E</option>
+          </select>
+        </div>
+        <div id="qinfo"></div>
+      </div>
+
+      <!-- SCRAPER PANE (v2.0 unchanged) -->
+      <div class="ipane" id="ipane-scraper">
+        <div class="scraper-box">
+          <div class="scr-instr">
+            <b>How to use the Amazon Scraper:</b><br>
+            1. Open <em>Amazon.com</em> and search for any product keyword<br>
+            2. Wait for the search results to load<br>
+            3. Come back here and click <em>▶ Scrape Amazon Results</em><br>
+            4. The agent will collect unique brand ASINs across all pages<br>
+            5. Click <em>▶ Start</em> to find official websites for each brand
+          </div>
+          <div class="option-row">
+            <label>Pages to scrape</label>
+            <select class="num-sel" id="scr-pages">
+              <option value="1">1 page</option>
+              <option value="3" selected>3 pages</option>
+              <option value="5">5 pages</option>
+              <option value="10">10 pages</option>
+              <option value="20">20 pages</option>
+            </select>
+            <span style="font-size:10px;color:var(--muted)">(~48 ASINs/page)</span>
+          </div>
+          <div class="chk-row">
+            <input type="checkbox" id="scr-dedup" checked/>
+            <label for="scr-dedup">Skip duplicate brands (same brand, different ASIN)</label>
+          </div>
+          <button class="btn o" id="bscrape">🕷️ Scrape Amazon Results</button>
+          <button class="btn g sm" id="bdownload-scrape-queue" style="margin-top:4px" title="Download scraped ASINs as CSV">⬇ Download Scraped ASINs</button>
+          <div id="scrape-status" class="show" style="color:var(--muted)">
+            Open Amazon → search for a keyword → click Scrape
+          </div>
+          <div id="scrape-progress-bar-wrap">
+            <div id="scrape-pbar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── v3.0: KEYWORDS PANE ────────────────────────────── -->
+      <div class="ipane" id="ipane-keywords">
+        <div class="kw-box">
+          <div class="kw-instr">
+            <b>Auto Amazon Keyword Scraper:</b><br>
+            Feed a list of <em>product keywords</em> (e.g. "cat food", "LED lamp") and the agent will automatically search each keyword on Amazon, collect unique brand ASINs across multiple pages, then find their official websites.
+          </div>
+
+          <!-- Source selector -->
+          <div class="kw-source-tabs">
+            <button class="ksrc on" data-ksrc="paste-kw">✏️ Paste Keywords</button>
+            <button class="ksrc"    data-ksrc="upload-csv">📂 Upload CSV</button>
+            <button class="ksrc"    data-ksrc="sheet-url">🔗 Sheet URL</button>
+          </div>
+
+          <!-- Paste keywords pane -->
+          <div class="kpane on" id="kpane-paste-kw">
+            <textarea id="kw-paste" placeholder="One keyword per line:&#10;cat food&#10;LED lamp&#10;yoga mat&#10;electric toothbrush"></textarea>
+            <div style="display:flex;gap:6px;margin-top:4px;align-items:center">
+              <button id="v7-kw-autofill-btn" style="flex:1;background:linear-gradient(135deg,#0d2a1a,#0a3020);color:#56d364;border:1px solid #1a6030;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.02em" title="Fetch unlimited unique product keywords and fill the box">&#x2728; Auto-fill Unique Keywords</button>
+              <button id="v7-kw-autofill-add-btn" style="background:#0d1a30;color:#88aaff;border:1px solid #1a3a6a;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:11px;font-weight:600" title="Add more unique keywords (append)">&#x2795; Add More</button>
+            </div>
+          </div>
+
+          <!-- Upload CSV pane -->
+          <div class="kpane" id="kpane-upload-csv">
+            <div class="kw-file-area" id="kw-file-drop">
+              <input type="file" id="kw-file" accept=".csv,.txt"/>
+              <p>📂 <b>Click to select</b> or drag &amp; drop a CSV/TXT file<br>
+              <span style="font-size:10px">One keyword per row in any column</span></p>
+            </div>
+            <div id="kw-file-name" style="font-size:10px;color:var(--muted)"></div>
+          </div>
+
+          <!-- Sheet URL pane -->
+          <div class="kpane" id="kpane-sheet-url">
+            <div class="kw-sheet-row">
+              <input type="url" id="kw-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/…"/>
+              <button class="btn g sm" id="bkw-fetch-sheet">Fetch</button>
+            </div>
+            <div style="font-size:10px;color:var(--muted)">Sheet must be publicly viewable. Keywords in column A (first column).</div>
+          </div>
+
+          <div id="kw-info"></div>
+
+          <div class="option-row" style="margin-top:6px">
+            <label>Pages per keyword</label>
+            <select class="num-sel" id="kw-pages">
+              <option value="1">1 page</option>
+              <option value="2" selected>2 pages</option>
+              <option value="3">3 pages</option>
+              <option value="5">5 pages</option>
+              <option value="10">10 pages</option>
+            </select>
+          </div>
+          <div class="chk-row">
+            <input type="checkbox" id="kw-dedup" checked/>
+            <label for="kw-dedup">Skip duplicate brands across all keywords</label>
+          </div>
+
+          <button class="btn o" id="bscrapekeys">🔑 Load Keywords → Scrape Amazon</button>
+          <button class="btn g sm" id="bdownload-kw-queue" style="margin-top:4px" title="Download keyword-scraped ASINs as CSV">⬇ Download Scraped ASINs</button>
+          <!-- v6: Scrape controls -->
+          <div id="v6-scrape-controls" style="display:none; margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">
+            <button id="v6-bstop-scrape" class="v6-scrape-btn v6-btn-stop" title="Stop keyword scraping">⏹ Stop</button>
+            <button id="v6-bpause-scrape" class="v6-scrape-btn v6-btn-pause" title="Pause / Resume keyword scraping">⏸ Pause</button>
+            <button id="v6-brestart-scrape" class="v6-scrape-btn v6-btn-restart" title="Restart scraping from the beginning">🔄 Restart</button>
+          </div>
+          <!-- v6: View keywords button (shown to all users when admin enables it) -->
+          <button id="v6-bview-keywords" style="display:none; margin-top:4px; width:100%; padding:6px 0; background:#2a3050; color:#a8b4d0; border:1px solid #3a4060; border-radius:6px; cursor:pointer; font-size:12px;">📋 View All Scraped Keywords</button>
+        </div>
+      </div>
+      <!-- ── end Keywords pane ─────────────────────────────── -->
+
+      <!-- ── v7.0.2: BRAND NAME WEBSITE FINDER PANE ──────── -->
+      <div id="v7-brand-search-pane" style="display:none;">
+        <hr style="border:none;border-top:1px solid #2a3050;margin:8px 0;">
+        <div style="background:#0d1420;border:1px solid #1e3050;border-radius:8px;padding:10px;">
+          <div style="font-size:12px;font-weight:700;color:#58a6ff;margin-bottom:6px;">🌐 Brand Name Website Finder</div>
+          <div style="font-size:10px;color:#6a80a0;margin-bottom:8px;">Paste brand/company names to find their official websites. One name per line, or upload a CSV, or provide a Google Sheet URL.</div>
+
+          <!-- Source tabs -->
+          <div class="kw-source-tabs" id="v7bs-tabs">
+            <button class="ksrc on" data-v7bssrc="paste">✏️ Paste Names</button>
+            <button class="ksrc"    data-v7bssrc="csv">📂 Upload CSV</button>
+            <button class="ksrc"    data-v7bssrc="sheet">🔗 Sheet URL</button>
+          </div>
+
+          <!-- Paste pane -->
+          <div id="v7bsp-paste" class="kpane on">
+            <textarea id="v7bs-paste-input" rows="4" placeholder="One brand name per line:&#10;Nike&#10;Apple&#10;Samsung&#10;Tesla"></textarea>
+          </div>
+
+          <!-- CSV pane -->
+          <div id="v7bsp-csv" class="kpane">
+            <div class="kw-file-area" id="v7bs-file-drop">
+              <input type="file" id="v7bs-file" accept=".csv,.txt"/>
+              <p>📂 <b>Click to select</b> or drag &amp; drop a CSV/TXT file<br>
+              <span style="font-size:10px">Brand names in any column</span></p>
+            </div>
+            <div id="v7bs-file-name" style="font-size:10px;color:var(--muted)"></div>
+          </div>
+
+          <!-- Sheet URL pane -->
+          <div id="v7bsp-sheet" class="kpane">
+            <div class="kw-sheet-row">
+              <input type="url" id="v7bs-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/…"/>
+              <button class="btn g sm" id="v7bs-fetch-sheet">Fetch</button>
+            </div>
+            <div style="font-size:10px;color:var(--muted)">Sheet must be publicly viewable. Brand names in column A.</div>
+          </div>
+
+          <div id="v7bs-info" style="font-size:11px;color:#6a80a0;margin-top:4px;"></div>
+
+          <button class="btn s" id="v7bs-start" style="margin-top:6px;width:100%;">🔍 Find Websites</button>
+          <button class="btn w" id="v7bs-stop" style="margin-top:4px;width:100%;display:none;">⏹ Stop</button>
+
+          <!-- Progress -->
+          <div id="v7bs-progress" style="margin-top:8px;display:none;">
+            <div style="background:#0a0d18;border-radius:4px;overflow:hidden;height:6px;margin-bottom:4px;">
+              <div id="v7bs-pbar" style="height:100%;background:linear-gradient(90deg,#1e5fa0,#58a6ff);width:0%;transition:width .3s;"></div>
+            </div>
+            <div id="v7bs-prog-text" style="font-size:10px;color:#6a80a0;text-align:center;"></div>
+          </div>
+
+          <!-- Results -->
+          <div id="v7bs-results-wrap" style="margin-top:8px;display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <span style="font-size:11px;font-weight:600;color:#90c8ff;" id="v7bs-results-count">Results</span>
+              <button id="v7bs-export-csv" style="background:#1a3050;color:#88c0ff;border:1px solid #2a5080;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:10px;">⬇ Export CSV</button>
+            </div>
+            <div id="v7bs-results-body" style="max-height:200px;overflow-y:auto;font-size:11px;background:#0a0d18;border-radius:6px;padding:6px;"></div>
+          </div>
+        </div>
+      </div>
+      <!-- ── end Brand Name Website Finder pane ───────────── -->
+
+      <!-- Controls (v2.0 unchanged) -->
+      <div class="crow">
+        <button class="btn s" id="bstart">▶ Start</button>
+        <button class="btn w" id="bpause" disabled>⏸ Pause</button>
+        <button class="btn d" id="bstop"  disabled>⛔ Stop</button>
+        <button class="btn g" id="breset">🔄 Reset</button>
+        <button class="btn g sm" id="bdownload-queue" title="Download scraped ASINs/keywords as CSV">⬇ Queue CSV</button>
+      </div>
+
+      <hr class="dv">
+
+      <!-- Stats (v4.0: 6 columns) -->
+      <div class="sgrid-6">
+        <div class="sc bl"><div class="sv" id="st">0</div><div class="sl">Total</div></div>
+        <div class="sc">   <div class="sv" id="sd">0</div><div class="sl">Done</div></div>
+        <div class="sc gr"><div class="sv" id="sf">0</div><div class="sl">Found</div></div>
+        <div class="sc yw"><div class="sv" id="sn">0</div><div class="sl">No Site</div></div>
+        <div class="sc pu"><div class="sv" id="sk">0</div><div class="sl">Dupes</div></div>
+        <div class="sc"  style="border-color:#3d3060"><div class="sv" id="sdb" style="color:#a79cff">0</div><div class="sl">DB Dupes</div></div>
+      </div>
+      <div class="pw"><div id="pbar"></div></div>
+      <div id="plbl">No job running</div>
+      <div id="cur"><div class="sp"></div><div id="ctxt">Ready</div></div>
+    </div>
+
+    <!-- Live log (v2.0 unchanged) -->
+    <div style="padding:0 12px 10px;flex-shrink:0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div class="lbl" style="margin:0">Live Activity</div>
+        <button class="btn g sm" id="bclrlog">Clear</button>
+      </div>
+      <div id="lbox"></div>
+      <!-- v6.0.2: shown when admin has hidden activity for this user -->
+      <div id="v6-activity-hidden-note" style="display:none;text-align:center;padding:10px;color:#555;font-size:11px;font-style:italic;">🔕 Activity log hidden by admin</div>
+    </div>
+  </div>
+
+  <!-- ══════════════ RESULTS PANEL ══════════════ -->
+  <div class="pnl" id="results-panel">
+    <div class="rh">
+      <h3 id="rtitle">Results</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn s sm"  id="bexport">⬇ Export CSV</button>
+        <button class="btn g sm"  id="bcopysht">📋 Copy (Sheet)</button>
+      </div>
+    </div>
+
+    <!-- v4.0: Results management row -->
+    <div class="rmgt">
+      <div class="rmgt-lbl">Manage Results:</div>
+      <button class="btn g sm" id="bdeldupes" title="Remove all duplicate entries from results list">🗑 Remove Dupes</button>
+      <button class="btn g sm" id="bdeldbdupes" title="Remove all DB duplicate entries from results list">🗑 Remove DB Dupes</button>
+      <button class="btn g sm" id="bdelnotfound" title="Remove all not-found entries from results list">🗑 Remove Not Found</button>
+      <button class="btn w sm" id="bretrynotfound" title="Re-queue all not-found brands and retry website search">🔄 Retry Not Found</button>
+      <button class="btn w sm" id="bretryskipped" title="Re-run every skipped / not-found / error ASIN from the start (recovers ASINs wasted by old 'Brand not found' skips)">🔁 Re-run Skipped</button>
+    </div>
+
+    <!-- v6.0.2: shown when admin has hidden website results for this user -->
+    <div id="v6-hide-websites-note" style="display:none;text-align:center;padding:30px 20px;color:#8090a0;">
+      <div style="font-size:28px;margin-bottom:8px;">🙈</div>
+      <p style="font-size:12px;line-height:1.6;">Website results are currently hidden by your admin.<br>Stats and counts are still tracked normally.</p>
+    </div>
+
+    <div id="res-empty">
+      <div class="icon">📭</div>
+      <p>No results yet.<br>Go to the Agent tab, load ASINs and click ▶ Start.</p>
+    </div>
+    <div id="rtw" style="display:none">
+      <table id="rtbl">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Brand Name</th>
+            <th>Amazon URL</th>
+            <th>Official Website</th>
+            <th>Conf</th>
+            <th>Method</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="rbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════ TEAM PANEL ══════════════ -->
+  <div class="pnl" id="team-panel">
+
+    <!-- Sub-tab strip (always visible) -->
+    <div id="v6-team-subtabs">
+      <button class="v6-tsub on" id="v6-tsub-members" data-sub="members">👥 Members</button>
+      <button class="v6-tsub" id="v6-tsub-chat" data-sub="chat">💬 Group Chat <span id="v6-chat-unread-dot"></span></button>
+      <button class="v6-tsub" id="v6-tsub-inbox" data-sub="inbox">📥 Inbox <span id="v7-inbox-dot"></span></button>
+      <button class="v6-tsub" id="v6-tsub-calls" data-sub="calls">&#x260E; Calls</button>
+    </div>
+
+    <!-- ── Members subtab ─────────────────────────────────────────────────── -->
+    <div id="v6-members-subtab">
+
+      <!-- Registration / member status notices -->
+      <div id="notice-pending"  class="status-notice notice-pending">
+        <b>⏳ Registration Pending — Extension Locked</b><br>
+        Your account is awaiting activation. Check your email for a 6-digit verification code and enter it in ⚙️ Settings → Email Verification. Or wait for your admin to approve you manually in the Team tab.
+      </div>
+      <div id="notice-approved" class="status-notice notice-approved">
+        ✅ <b>You're approved!</b> Your results are syncing to the team database.
+      </div>
+      <div id="notice-admin"    class="status-notice notice-approved">
+        🔐 <b>Admin mode active.</b> You can approve or reject pending members below.
+      </div>
+      <!-- v7.0.2: Call Admin button (shown to approved non-admin users only) -->
+      <div id="v7-call-btn-wrap" style="display:none">
+        <button id="v7-call-admin-btn">📞 Call Admin</button>
+        <div id="v7-call-btn-msg" style="font-size:10px;color:#8090a0;text-align:center;margin-top:4px;min-height:14px;white-space:pre-wrap;line-height:1.4"></div>
+        <div style="font-size:9px;color:#445;text-align:center;margin-top:3px">
+          Requires microphone. If blocked: click 🔒 in Chrome → Site settings → Microphone → Allow
+        </div>
+      </div>
+      <div id="notice-rejected" class="status-notice notice-rejected">
+        ❌ <b>Your registration was rejected.</b> Contact your team admin.
+      </div>
+      <div id="notice-noreg"    class="status-notice notice-pending">
+        ℹ️ Please enter your <b>Database URL + Secret</b> in ⚙️ Settings, then click <b>Save All Settings</b> to auto-register.
+      </div>
+      <div id="notice-noreg2"   class="status-notice notice-pending">
+        ⚠️ <b>Not registered in team database.</b> Go to <b>⚙️ Settings</b> → enter your DB URL + Secret → click <b>💾 Save All Settings</b> to register automatically. Or click <b>Register Now</b> below.
+        <div style="margin-top:8px"><button class="btn p sm" onclick="checkProfile()">✅ Register Now</button></div>
+      </div>
+
+      <!-- Team stat cards -->
+      <div class="team-stats-grid">
+        <div class="ts-card act"><div class="ts-val" id="ts-active">—</div><div class="ts-lbl">Active Now</div></div>
+        <div class="ts-card fnd"><div class="ts-val" id="ts-found">—</div><div class="ts-lbl">Total Found</div></div>
+        <div class="ts-card pnd"><div class="ts-val" id="ts-pending">—</div><div class="ts-lbl">Pending</div></div>
+      </div>
+
+      <!-- Refresh / Sync / v5.8 Add User -->
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="btn g sm" id="brefresh-team">🔄 Refresh Stats</button>
+        <button class="btn g sm" id="bsync-db-dupes">🔁 Sync DB Duplicates</button>
+        <button class="btn p sm" id="btn-show-add-user" style="display:none">➕ Add New User</button>
+      </div>
+
+      <!-- v6.0.2: Admin global controls — only visible to admin -->
+      <div id="v6-admin-global-controls" style="display:none;margin-bottom:12px;">
+        <div class="section-hdr" style="margin-bottom:6px;">🌐 Global Controls (All Users)</div>
+        <div style="background:#1a1f2e;border:1px solid #2a3050;border-radius:8px;padding:10px 12px;">
+          <div style="font-size:11px;color:#8090a0;margin-bottom:8px;">Website Results</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+            <button id="v6-global-hide-websites" data-action="hide" style="padding:5px 10px;font-size:11px;background:#3a1a1a;color:#ff9090;border:1px solid #6a2a2a;border-radius:5px;cursor:pointer;">🙈 Hide for ALL Users</button>
+            <button id="v6-global-show-websites" data-action="show" style="padding:5px 10px;font-size:11px;background:#1a2a1a;color:#90cc90;border:1px solid #2a6a2a;border-radius:5px;cursor:pointer;">👁 Show for ALL Users</button>
+          </div>
+          <div style="font-size:11px;color:#8090a0;margin-bottom:8px;">Activity Log</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button id="v6-global-hide-activity" data-action="hide" style="padding:5px 10px;font-size:11px;background:#3a1a1a;color:#ff9090;border:1px solid #6a2a2a;border-radius:5px;cursor:pointer;">🔕 Hide for ALL Users</button>
+            <button id="v6-global-show-activity" data-action="show" style="padding:5px 10px;font-size:11px;background:#1a2a1a;color:#90cc90;border:1px solid #2a6a2a;border-radius:5px;cursor:pointer;">🔔 Show for ALL Users</button>
+          </div>
+          <!-- v6.0.3: Announcements compose section -->
+          <div style="margin-top:12px;border-top:1px solid #2a3050;padding-top:10px;">
+            <div style="font-size:11px;color:#8090a0;margin-bottom:8px;font-weight:600;">📢 Announcements &amp; Messages</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <textarea id="v6-ann-compose-msg" placeholder="Write announcement, news, update or message here…" style="width:100%;min-height:58px;background:#0d1117;color:#e6edf3;border:1px solid #2a3050;border-radius:5px;padding:6px 8px;font-size:11px;resize:vertical;font-family:inherit;box-sizing:border-box;"></textarea>
+              <input type="url" id="v6-ann-compose-link" placeholder="Optional link (https://…)" style="width:100%;background:#0d1117;color:#e6edf3;border:1px solid #2a3050;border-radius:5px;padding:5px 8px;font-size:11px;box-sizing:border-box;"/>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <select id="v6-ann-compose-priority" style="flex:1;background:#0d1117;color:#e6edf3;border:1px solid #2a3050;border-radius:5px;padding:5px 6px;font-size:11px;">
+                  <option value="normal">📢 Normal</option>
+                  <option value="urgent">🚨 Urgent</option>
+                  <option value="info">ℹ️ Info</option>
+                </select>
+                <input type="email" id="v6-ann-compose-target" placeholder="All users (leave blank for all)" style="flex:2;background:#0d1117;color:#e6edf3;border:1px solid #2a3050;border-radius:5px;padding:5px 8px;font-size:11px;"/>
+              </div>
+              <button id="v6-ann-send-btn" style="padding:6px 12px;font-size:11px;background:#1a3a5a;color:#88ccff;border:1px solid #3a6a9a;border-radius:5px;cursor:pointer;font-weight:600;text-align:center;">📣 Send Announcement</button>
+              <div id="v6-ann-send-result" style="font-size:10px;min-height:13px;color:#8090a0;"></div>
+            </div>
+            <div id="v6-ann-active-list" style="margin-top:8px;"></div>
+            <button id="v6-ann-clear-all" style="margin-top:5px;padding:4px 10px;font-size:10px;background:#3a0a0a;color:#ff9090;border:1px solid #6a1a1a;border-radius:4px;cursor:pointer;display:none;">🗑 Clear All Announcements</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Members list -->
+      <div class="section-hdr">👥 Team Members</div>
+      <div id="team-members-list">
+        <div style="text-align:center;padding:24px 16px;color:var(--muted);font-size:11px;line-height:1.7">
+          No team data yet.<br>Set <b>Database URL + Secret</b> in Settings and ensure<br>the v4.0 companion script is deployed.
+        </div>
+      </div>
+
+      <!-- Admin section — only visible when user has admin role -->
+      <div id="admin-section" style="display:none;margin-top:12px">
+        <div class="section-hdr" style="color:var(--orange)">🔐 Pending Approvals</div>
+        <div id="pending-approvals-list">
+          <div style="font-size:11px;color:var(--muted);padding:6px 0">No pending members.</div>
+        </div>
+        <div class="section-hdr" style="color:var(--red);margin-top:12px">🚫 Block / Unblock Member</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Enter a member email to block (suspend) or unblock their access.</div>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+          <input type="email" class="ci" id="block-target-email" placeholder="member@email.com" style="flex:1;margin:0"/>
+          <button class="btn d sm" id="bblock-member">🚫 Block</button>
+          <button class="btn s sm" id="bunblock-member">✅ Unblock</button>
+        </div>
+        <div id="block-result" style="font-size:10px;color:var(--muted);min-height:14px"></div>
+
+        <!-- v7.1: Stats Reset (admin only) -->
+        <div class="section-hdr" style="color:#e3b341;margin-top:12px">📊 Stats Reset Controls</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Reset weekly or monthly found counters to zero for all members. <b>All-time total is never affected.</b></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+          <button class="btn sm" id="btn-reset-weekly" style="background:rgba(227,179,65,.15);color:#e3b341;border:1px solid rgba(227,179,65,.35)">🗓 Reset Weekly</button>
+          <button class="btn sm" id="btn-reset-monthly" style="background:rgba(188,140,255,.15);color:#bc8cff;border:1px solid rgba(188,140,255,.35)">📅 Reset Monthly</button>
+          <button class="btn sm" id="btn-reset-both" style="background:rgba(248,81,73,.12);color:#f85149;border:1px solid rgba(248,81,73,.3)">🔄 Reset Both</button>
+        </div>
+        <div id="stats-reset-result" style="font-size:10px;color:var(--muted);min-height:14px;margin-bottom:4px"></div>
+
+        <div class="section-hdr" style="color:var(--accent);margin-top:12px">🧹 Database Maintenance</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Remove duplicate rows from the Database sheet (keeps first occurrence of each brand). Run this if you see duplicate entries in your sheet.</div>
+        <button class="btn g" id="bcleanup-db" style="width:100%">🧹 Clean DB Duplicates</button>
+        <div id="cleanup-db-result" style="font-size:10px;color:var(--muted);min-height:14px;margin-top:4px"></div>
+      </div>
+
+    </div><!-- /#v6-members-subtab -->
+
+    <!-- ── Chat subtab (WhatsApp / Messenger style) ──────────────────────────── -->
+    <div id="v6-chat-subtab">
+
+      <!-- Chat header bar -->
+      <div id="v6-chat-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:14px;">💬</span>
+          <span style="font-size:12px;font-weight:700;color:#c8e6ff;">Team Group Chat</span>
+        </div>
+        <span id="v6-chat-status-badge" style="font-size:9px;font-weight:600;padding:3px 9px;border-radius:10px;background:#1a1f2e;color:#8090a0;"></span>
+      </div>
+
+      <!-- Admin controls bar (admin only) -->
+      <div id="v6-chat-admin-bar">
+        <div style="font-size:10px;color:#667;margin-bottom:5px;font-weight:600;">🛡 Chat Admin Controls</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button id="v6-chat-mute-all-btn"   style="padding:4px 10px;font-size:10px;background:#2a0a0a;color:#ff9090;border:1px solid #5a1a1a;border-radius:5px;cursor:pointer;">🔇 Mute All</button>
+          <button id="v6-chat-unmute-all-btn" style="padding:4px 10px;font-size:10px;background:#0a1a0a;color:#90cc90;border:1px solid #1a5a1a;border-radius:5px;cursor:pointer;">🔊 Unmute Chat</button>
+        </div>
+      </div>
+
+      <!-- Nickname setup panel — shown on first entry if no nickname -->
+      <div id="v6-chat-nickname-setup" style="display:none;">
+        <div style="font-size:14px;text-align:center;margin-bottom:8px;">👤</div>
+        <div style="font-size:12px;font-weight:600;color:#c8d8f0;margin-bottom:5px;text-align:center;">Choose your chat name</div>
+        <div style="font-size:11px;color:#8090a0;margin-bottom:10px;text-align:center;line-height:1.5;">Use your real name or stay anonymous — your choice!</div>
+        <div style="display:flex;gap:7px;">
+          <input type="text" id="v6-chat-nickname-input" placeholder="e.g. SalesHero or Anonymous42" maxlength="30"
+            style="flex:1;background:#0d1117;color:#e6edf3;border:1px solid #2a3a5a;border-radius:10px;padding:9px 13px;font-size:11px;font-family:inherit;outline:none;"/>
+          <button id="v6-chat-nickname-save" style="padding:9px 16px;font-size:11px;font-weight:700;background:#0e3a6a;color:#58a6ff;border:1px solid #2a5a9a;border-radius:10px;cursor:pointer;white-space:nowrap;">✓ Set Name</button>
+        </div>
+        <div id="v6-chat-nickname-msg" style="font-size:10px;min-height:14px;margin-top:7px;color:#8090a0;text-align:center;"></div>
+      </div>
+
+      <!-- Messages wrap — shown once nickname is set -->
+      <div id="v6-chat-messages-wrap" style="display:none;">
+
+        <!-- Scrollable messages area -->
+        <div id="v6-chat-messages">
+          <div class="chat-msg chat-system">Loading chat…</div>
+        </div>
+
+        <!-- Status notices -->
+        <div id="v6-chat-kicked-notice" style="display:none;font-size:10px;color:#f85149;background:#200808;border-top:1px solid #5a1a1a;padding:7px 13px;text-align:center;flex-shrink:0;">⛔ You have been removed from Team Chat by an admin.</div>
+        <div id="v6-chat-muted-notice"  style="display:none;font-size:10px;color:#e3b341;background:#1a1000;border-top:1px solid #5a3a00;padding:7px 13px;text-align:center;flex-shrink:0;">🔇 Chat is currently muted. You cannot send messages.</div>
+        <div id="v6-chat-warning" class="chat-warn" style="display:none;"></div>
+
+        <!-- Emoji picker tray -->
+        <div id="v6-chat-emoji-tray">
+          <!-- Row 1: Reactions -->
+          <button class="v6-emoji-btn" title="Grinning">😀</button>
+          <button class="v6-emoji-btn" title="LOL">😂</button>
+          <button class="v6-emoji-btn" title="Love eyes">😍</button>
+          <button class="v6-emoji-btn" title="Cool">😎</button>
+          <button class="v6-emoji-btn" title="Thinking">🤔</button>
+          <button class="v6-emoji-btn" title="Wow">😮</button>
+          <button class="v6-emoji-btn" title="Sad">😢</button>
+          <button class="v6-emoji-btn" title="Love">🥰</button>
+          <button class="v6-emoji-btn" title="Star-struck">🤩</button>
+          <button class="v6-emoji-btn" title="Relieved">😅</button>
+          <button class="v6-emoji-btn" title="Angel">😇</button>
+          <button class="v6-emoji-btn" title="Party">🥳</button>
+          <!-- Row 2: Hands/Gestures -->
+          <button class="v6-emoji-btn" title="Thumbs up">👍</button>
+          <button class="v6-emoji-btn" title="Thumbs down">👎</button>
+          <button class="v6-emoji-btn" title="Clap">🙌</button>
+          <button class="v6-emoji-btn" title="Applause">👏</button>
+          <button class="v6-emoji-btn" title="Handshake">🤝</button>
+          <button class="v6-emoji-btn" title="Pray">🙏</button>
+          <button class="v6-emoji-btn" title="Muscle">💪</button>
+          <button class="v6-emoji-btn" title="Call me">🤙</button>
+          <button class="v6-emoji-btn" title="Peace">✌️</button>
+          <button class="v6-emoji-btn" title="Fingers crossed">🤞</button>
+          <button class="v6-emoji-btn" title="See no evil">🙈</button>
+          <button class="v6-emoji-btn" title="Shrug">🤷</button>
+          <!-- Row 3: Symbols -->
+          <button class="v6-emoji-btn" title="Heart">❤️</button>
+          <button class="v6-emoji-btn" title="Fire">🔥</button>
+          <button class="v6-emoji-btn" title="100">💯</button>
+          <button class="v6-emoji-btn" title="Check">✅</button>
+          <button class="v6-emoji-btn" title="Star">⭐</button>
+          <button class="v6-emoji-btn" title="Bullseye">🎯</button>
+          <button class="v6-emoji-btn" title="Rocket">🚀</button>
+          <button class="v6-emoji-btn" title="Diamond">💎</button>
+          <button class="v6-emoji-btn" title="Trophy">🏆</button>
+          <button class="v6-emoji-btn" title="Party popper">🎉</button>
+          <button class="v6-emoji-btn" title="Idea">💡</button>
+          <button class="v6-emoji-btn" title="Lightning">⚡</button>
+          <!-- Row 4: Objects -->
+          <button class="v6-emoji-btn" title="Megaphone">📢</button>
+          <button class="v6-emoji-btn" title="Bell">🔔</button>
+          <button class="v6-emoji-btn" title="Notepad">📝</button>
+          <button class="v6-emoji-btn" title="Chat bubble">💬</button>
+          <button class="v6-emoji-btn" title="Chart">📊</button>
+          <button class="v6-emoji-btn" title="Trending up">📈</button>
+          <button class="v6-emoji-btn" title="Tools">🛠️</button>
+          <button class="v6-emoji-btn" title="Phone">📱</button>
+          <button class="v6-emoji-btn" title="Laptop">💻</button>
+          <button class="v6-emoji-btn" title="Sparkles">✨</button>
+          <button class="v6-emoji-btn" title="Glowing star">🌟</button>
+          <button class="v6-emoji-btn" title="Gift">🎁</button>
+        </div>
+
+        <!-- Input bar -->
+        <div id="v6-chat-input-bar">
+          <button id="v6-chat-emoji-btn" title="Pick emoji">😊</button>
+          <input type="text" id="v6-chat-input" placeholder="Type a message…" maxlength="500"/>
+          <button id="v6-chat-send-btn" title="Send (Enter)">➤</button>
+        </div>
+
+        <!-- Posting as footer -->
+        <div style="font-size:9px;color:#334;padding:3px 13px 6px;text-align:right;flex-shrink:0;background:#0d1117;">
+          Posting as: <span id="v6-chat-my-nickname" style="color:#58a6ff;font-weight:600;"></span>
+          <button id="v6-chat-change-nick" style="background:none;border:none;color:#445;cursor:pointer;font-size:9px;padding:0 0 0 6px;text-decoration:underline;">change name</button>
+        </div>
+
+      </div><!-- /#v6-chat-messages-wrap -->
+
+    </div><!-- /#v6-chat-subtab -->
+
+    <!-- ── v7.0.2 Inbox Chat subtab (1-on-1 private chat with admin) ─────────── -->
+    <!-- v7.0.15: Calls sub-tab -->
+    <div id="v7-calls-subtab" class="v7-calls-subtab">
+      <div style="padding:9px 13px;border-bottom:1px solid #1a2a4a;background:#0f1520;font-size:11px;font-weight:700;color:#cdd9e5">&#x260E; Voice Calls</div>
+      <!-- Admin dial: dropdown + call button -->
+      <div id="v7-calls-dial-panel" style="padding:12px 13px;border-bottom:1px solid #1a2a4a;background:#0f1520;display:none">
+        <div style="font-size:10px;font-weight:700;color:#8090a0;letter-spacing:.05em;margin-bottom:8px">CALL A MEMBER</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="v7-calls-member-select" style="flex:1;background:#1a2a4a;color:#cdd9e5;border:1px solid #2a3a5a;border-radius:6px;padding:7px 8px;font-size:11px;cursor:pointer">
+            <option value="">Select member to call…</option>
+          </select>
+          <button id="v7-calls-dial-btn" style="background:linear-gradient(135deg,#075e54,#128c7e);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;letter-spacing:.01em">&#x260E; Call</button>
+        </div>
+        <div id="v7-calls-dial-status" style="font-size:10px;color:#8090a0;margin-top:5px;min-height:14px"></div>
+      </div>
+      <!-- User: call admin button -->
+      <div id="v7-calls-user-panel" style="padding:20px 16px;text-align:center;display:none">
+        <div style="font-size:11px;color:#8090a0;margin-bottom:14px">Tap below to call the admin</div>
+        <button id="v7-calls-call-admin-btn" style="width:100%;padding:12px 0;background:linear-gradient(135deg,#075e54,#128c7e);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.02em">&#x260E; Call Admin</button>
+      </div>
+      <!-- Member quick-dial list (admin) -->
+      <div id="v7-calls-list" style="flex:1;overflow-y:auto;padding:6px 0">
+        <div style="text-align:center;color:#445;font-size:11px;padding:20px">&#x23F3; Loading members…</div>
+      </div>
+      <div style="padding:8px 13px;border-top:1px solid #1a2a4a;background:#0f1520;font-size:10px;font-weight:700;color:#8090a0;letter-spacing:.05em">RECENT CALLS</div>
+      <div id="v7-calls-history" style="max-height:180px;overflow-y:auto;background:#0a0d14"></div>
+    </div>
+    <!-- v7.0.17: INBOX — WhatsApp-style, complete rewrite -->
+    <div id="v7-inbox-subtab">
+
+      <!-- ═══ PANEL A: Thread List (admin only) ═══ -->
+      <div id="v7-inbox-threads-panel" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;border-bottom:1px solid #1a2a4a;background:#0f1520;flex-shrink:0">
+          <span style="font-size:13px;font-weight:700;color:#cdd9e5">&#x1F4E5; Inbox</span>
+          <button id="v7-inbox-refresh-btn" title="Refresh" style="background:none;border:none;color:#58a6ff;cursor:pointer;font-size:15px;padding:0">&#x21BA;</button>
+        </div>
+        <div id="v7-inbox-thread-list" style="flex:1;overflow-y:auto">
+          <div style="text-align:center;color:#445;font-size:11px;padding:30px 20px">&#x23F3; Loading conversations…</div>
+        </div>
+      </div>
+
+      <!-- ═══ PANEL B: Chat View (admin after selecting thread, user always) ═══ -->
+      <div id="v7-inbox-chat-panel" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+        <!-- Chat header: back button + peer name -->
+        <div id="v7-inbox-chat-hdr" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #1a2a4a;background:#0f1520;flex-shrink:0">
+          <button id="v7-inbox-back-btn" style="display:none;background:none;border:none;color:#58a6ff;cursor:pointer;font-size:18px;padding:0 4px 0 0;line-height:1">&#x2190;</button>
+          <div id="v7-inbox-peer-avatar" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1a3050,#0d2040);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#88bbff;flex-shrink:0"></div>
+          <div style="flex:1;min-width:0">
+            <div id="v7-inbox-peer-name" style="font-size:12px;font-weight:700;color:#e6edf3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Admin</div>
+            <div id="v7-inbox-peer-status" style="font-size:10px;color:#56d364">🟢 Private Chat</div>
+          </div>
+        </div>
+
+        <!-- Messages scroll area -->
+        <div id="v7-inbox-messages-wrap" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+          <div id="v7-inbox-messages" style="flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:4px;scroll-behavior:smooth">
+            <div class="v7-inbox-empty">&#x1F4ED; No messages yet.<br>Start the conversation!</div>
+          </div>
+        </div>
+
+      <!-- Input bar: same style as group chat -->
+      <div id="v7-inbox-input-bar">
+        <!-- Emoji tray -->
+        <div id="v7-inbox-emoji-tray" style="display:none;flex-wrap:wrap;gap:4px;padding:6px;background:#0f1520;border:1px solid #1a2a4a;border-radius:8px;margin-bottom:6px;max-height:100px;overflow-y:auto">
+          <span style="font-size:10px;color:#8090a0;width:100%;padding-bottom:3px">Pick an emoji:</span>
+          <button class="v7-ej" data-e="😊">😊</button>
+          <button class="v7-ej" data-e="😂">😂</button>
+          <button class="v7-ej" data-e="😍">😍</button>
+          <button class="v7-ej" data-e="🥰">🥰</button>
+          <button class="v7-ej" data-e="😎">😎</button>
+          <button class="v7-ej" data-e="🤔">🤔</button>
+          <button class="v7-ej" data-e="👍">👍</button>
+          <button class="v7-ej" data-e="👏">👏</button>
+          <button class="v7-ej" data-e="🙏">🙏</button>
+          <button class="v7-ej" data-e="❤️">❤️</button>
+          <button class="v7-ej" data-e="🔥">🔥</button>
+          <button class="v7-ej" data-e="✅">✅</button>
+          <button class="v7-ej" data-e="🎉">🎉</button>
+          <button class="v7-ej" data-e="💯">💯</button>
+          <button class="v7-ej" data-e="⭐">⭐</button>
+          <button class="v7-ej" data-e="📌">📌</button>
+          <button class="v7-ej" data-e="💡">💡</button>
+          <button class="v7-ej" data-e="⚠️">⚠️</button>
+          <button class="v7-ej" data-e="❌">❌</button>
+          <button class="v7-ej" data-e="✨">✨</button>
+          <button class="v7-ej" data-e="🚀">🚀</button>
+          <button class="v7-ej" data-e="💪">💪</button>
+          <button class="v7-ej" data-e="👋">👋</button>
+          <button class="v7-ej" data-e="😅">😅</button>
+          <button class="v7-ej" data-e="😭">😭</button>
+          <button class="v7-ej" data-e="🤣">🤣</button>
+          <button class="v7-ej" data-e="😘">😘</button>
+          <button class="v7-ej" data-e="🫡">🫡</button>
+          <button class="v7-ej" data-e="🫂">🫂</button>
+          <button class="v7-ej" data-e="💬">💬</button>
+          <button class="v7-ej" data-e="📢">📢</button>
+          <button class="v7-ej" data-e="🏆">🏆</button>
+          <button class="v7-ej" data-e="💼">💼</button>
+          <button class="v7-ej" data-e="📊">📊</button>
+          <button class="v7-ej" data-e="🎯">🎯</button>
+          <button class="v7-ej" data-e="🔑">🔑</button>
+          <button class="v7-ej" data-e="💰">💰</button>
+          <button class="v7-ej" data-e="📦">📦</button>
+          <button class="v7-ej" data-e="🛒">🛒</button>
+          <button class="v7-ej" data-e="🌟">🌟</button>
+        </div>
+        <div style="display:flex;gap:6px;align-items:flex-end">
+          <button id="v7-inbox-emoji-btn" title="Emoji" style="background:none;border:none;color:#8090a0;cursor:pointer;font-size:16px;padding:4px;flex-shrink:0">😊</button>
+          <textarea id="v7-inbox-input" placeholder="Type a private message…" style="flex:1;resize:none;background:#1a2030;border:1px solid #2a3a5a;border-radius:8px;color:#cdd9e5;font-size:12px;padding:7px 10px;min-height:34px;max-height:80px;outline:none;font-family:inherit;overflow-y:auto" rows="1"></textarea>
+          <button id="v7-inbox-send-btn" style="background:#1a4a2a;color:#7ee787;border:1px solid #2d6a3a;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">➤</button>
+        </div>
+        <div id="v7-inbox-send-msg" style="font-size:10px;color:#8090a0;min-height:13px;margin-top:4px"></div>
+      </div>
+      </div><!-- /#v7-inbox-chat-panel -->
+
+    </div><!-- /#v7-inbox-subtab -->
+
+  </div><!-- /#team-panel -->
+
+  <!-- ══════════════ CONFIG / SETTINGS PANEL ══════════════ -->
+  <div class="pnl" id="config-panel">
+    <div class="scr">
+
+      <!-- ── SECTION: Website Discovery (v2.0 unchanged) ─────── -->
+      <div class="section-hdr">🔍 Website Discovery Method</div>
+      <div class="cs">
+        <div class="radio-group" id="search-mode-group">
+          <label class="radio-row checked" id="rm-both">
+            <input type="radio" name="searchMode" value="both" checked/>
+            <span>Google Search + Direct .com
+              <span class="rdesc">Try Google first (recommended), then check brandname.com</span>
+            </span>
+          </label>
+          <label class="radio-row" id="rm-google">
+            <input type="radio" name="searchMode" value="google"/>
+            <span>Google Search only
+              <span class="rdesc">Most accurate — only use Google, no direct URL guessing</span>
+            </span>
+          </label>
+          <label class="radio-row" id="rm-com">
+            <input type="radio" name="searchMode" value="com"/>
+            <span>Direct .com only
+              <span class="rdesc">Fastest — only tries brandname.com, no search engine</span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- ── v3.0: SECTION: Search Delay ────────────────────── -->
+      <div class="section-hdr">⏱ Search Delay (Anti-Block)</div>
+      <div class="cs">
+        <div class="lbl" style="text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)">
+          Pause between each Google search query. Longer delays = less likely to be blocked.
+        </div>
+        <div class="delay-pills" id="delay-pills">
+          <button class="dpill" data-ms="0">Instant</button>
+          <button class="dpill" data-ms="500">500ms</button>
+          <button class="dpill on" data-ms="1200">1.2s ✓</button>
+          <button class="dpill" data-ms="2000">2s</button>
+          <button class="dpill" data-ms="3000">3s</button>
+          <button class="dpill" data-ms="5000">5s</button>
+          <button class="dpill" data-ms="10000">10s</button>
+          <button class="dpill" data-ms="-1">🎲 Random 1–8s</button>
+        </div>
+      </div>
+
+      <!-- ── v3.0: SECTION: Work Mode ───────────────────────── -->
+      <div class="section-hdr">🖥 Work Mode</div>
+      <div class="cs">
+        <div class="lbl" style="text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)">
+          Live mode opens tabs visibly so you can watch. Background mode hides all tabs.
+        </div>
+        <div class="wm-toggle">
+          <button class="wmbtn" id="wm-background" data-wm="background">🔕 Background (Silent)</button>
+          <button class="wmbtn on" id="wm-live" data-wm="live">👁 Live (Show Tabs)</button>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">
+          Current: <b id="wm-label">Background</b>
+        </div>
+      </div>
+
+      <!-- ── v3.0: SECTION: Anti-Block / IP ─────────────────── -->
+      <div class="section-hdr">🛡 Anti-Block &amp; IP Settings</div>
+      <div class="cs">
+        <div class="ib" style="margin-bottom:10px">
+          <b>CAPTCHA auto-wait:</b> When Google shows "I'm not a robot", the extension pauses for the configured time, brings the tab to front, then auto-resumes.<br>
+          <b>IP rotation</b> is handled by your browser — use a <b>VPN</b> or configure Chrome's proxy settings for automatic IP changes.
+        </div>
+
+        <label class="cl">CAPTCHA auto-wait (seconds)</label>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <input type="range" id="captcha-wait-slider" min="30" max="300" step="30" value="90" style="flex:1;accent-color:var(--orange)"/>
+          <span id="captcha-wait-label" style="font-size:12px;font-weight:700;color:var(--orange);width:30px;text-align:right">90s</span>
+        </div>
+
+        <label class="cl">Fallback search engine (when Google blocks)</label>
+        <div class="radio-group">
+          <label class="radio-row" id="fb-none-row">
+            <input type="radio" name="fallbackSearch" value="none"/>
+            <span>None — stop searching if Google blocks</span>
+          </label>
+          <label class="radio-row checked" id="fb-bing-row">
+            <input type="radio" name="fallbackSearch" value="bing" checked/>
+            <span>Bing <span class="rdesc">Fall back to Bing when Google CAPTCHA is detected</span></span>
+          </label>
+          <label class="radio-row" id="fb-ddg-row">
+            <input type="radio" name="fallbackSearch" value="ddg"/>
+            <span>DuckDuckGo <span class="rdesc">Privacy-friendly fallback, usually not blocked</span></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- ── v3.0: SECTION: Duplicate & Results Management ───── -->
+      <div class="section-hdr">🗂 Duplicate &amp; Results Management</div>
+      <div class="cs">
+        <div class="chk2" style="margin-bottom:8px">
+          <input type="checkbox" id="c-skipdup" checked/>
+          <span>
+            <label for="c-skipdup">Skip duplicate brands within a run</label>
+            <span class="rdesc">Same brand name across multiple ASINs — only process once</span>
+          </span>
+        </div>
+        <div class="chk2">
+          <input type="checkbox" id="c-autodel-notfound"/>
+          <span>
+            <label for="c-autodel-notfound">Auto-remove "Not Found" entries after job completes</label>
+            <span class="rdesc">Automatically clean up entries with no website found</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- ── v5.0: SECTION: Automation ───────────────────────────── -->
+      <div class="section-hdr">🤖 Automation (v5.0)</div>
+      <div class="cs">
+        <div class="ib">
+          Control auto-cleanup, database sync, and live-write behaviour after each job completes.
+        </div>
+        <div class="chk2" style="margin-bottom:8px">
+          <input type="checkbox" id="c-auto-remove-dupes"/>
+          <span>
+            <label for="c-auto-remove-dupes">Auto-remove duplicates after job completes</label>
+            <span class="rdesc">Automatically clears duplicate + DB-duplicate rows from results when the job finishes</span>
+          </span>
+        </div>
+        <div class="chk2" style="margin-bottom:8px">
+          <input type="checkbox" id="c-auto-dupe-sync"/>
+          <span>
+            <label for="c-auto-dupe-sync">Auto database duplicate sync after job</label>
+            <span class="rdesc">Re-checks results against the database automatically on job completion (manual sync also available)</span>
+          </span>
+        </div>
+        <div class="chk2" style="margin-bottom:8px">
+          <input type="checkbox" id="c-include-no-website-db"/>
+          <span>
+            <label for="c-include-no-website-db">Save "not found" brands to database too</label>
+            <span class="rdesc">Also writes brands with no website found to the Database Sheet (status: not-found)</span>
+          </span>
+        </div>
+        <div class="chk2" style="margin-bottom:8px">
+          <input type="checkbox" id="c-auto-captcha-click"/>
+          <span>
+            <label for="c-auto-captcha-click">Auto-click CAPTCHA checkbox (experimental)</label>
+            <span class="rdesc">Attempts to auto-click the "I'm not a robot" checkbox. May not work in cross-origin iframes.</span>
+          </span>
+        </div>
+        <div class="chk2" style="margin-bottom:12px">
+          <input type="checkbox" id="c-email-verification"/>
+          <span>
+            <label for="c-email-verification">Require email verification code for new users</label>
+            <span class="rdesc">When enabled, admin shares a 6-digit code; new users must enter it to get approved</span>
+          </span>
+        </div>
+        <label class="cl" style="margin-bottom:4px">Live-write filter — write to Google Sheet:</label>
+        <select class="lwf-select" id="c-lwf">
+          <option value="all">All results (found + not found + duplicates)</option>
+          <option value="found">Only found brands (have a website)</option>
+          <option value="no-dupes" selected>All results except duplicates (recommended)</option>
+        </select>
+      </div>
+
+      <!-- ── v5.0: SECTION: Email Verification ─────────────────── -->
+      <div class="section-hdr">✉️ Email Verification</div>
+      <div class="cs">
+        <div class="ib">
+          If your admin sent you a 6-digit verification code, enter it below to verify your email and activate your account.
+        </div>
+        <div class="verify-row">
+          <input type="text" id="settings-verify-code" placeholder="6-digit code" maxlength="6" inputmode="numeric"/>
+          <button class="btn s sm" id="bsettings-verify">✅ Verify Email</button>
+        </div>
+        <div id="settings-verify-status" style="font-size:10px;color:var(--muted);margin-top:4px;min-height:14px"></div>
+      </div>
+
+      <!-- ── v3.0: SECTION: User Profile ─────────────────────── -->
+      <div class="section-hdr">👤 Your Profile</div>
+      <div class="cs">
+        <div class="ib">Displayed in CSV exports as metadata. Stored locally only.</div>
+        <label class="cl">Name</label>
+        <input type="text"  class="ci" id="profile-name"  placeholder="Your name" style="margin-bottom:8px"/>
+        <label class="cl">Email</label>
+        <input type="email" class="ci" id="profile-email" placeholder="your@email.com"/>
+      </div>
+
+      <!-- ── v5.8: SECTION: Password & Security ──────────────── -->
+      <div class="section-hdr">🔑 Password &amp; Security</div>
+      <div class="cs">
+        <div class="ib" id="pwd-section-info">Change your account password. You'll need your current password.</div>
+        <label class="cl">Current Password</label>
+        <input type="password" class="ci" id="chpwd-old" placeholder="Current password" style="margin-bottom:8px" autocomplete="current-password"/>
+        <label class="cl">New Password</label>
+        <input type="password" class="ci" id="chpwd-new" placeholder="New password (min 6 chars)" style="margin-bottom:8px" autocomplete="new-password"/>
+        <label class="cl">Confirm New Password</label>
+        <input type="password" class="ci" id="chpwd-confirm" placeholder="Repeat new password" style="margin-bottom:10px" autocomplete="new-password"/>
+        <button class="btn g" id="btn-change-password">🔑 Change Password</button>
+        <div id="chpwd-result" style="font-size:10px;margin-top:6px;min-height:14px"></div>
+      </div>
+
+      <!-- ── v3.0: SECTION: API Integrations ─────────────────── -->
+      <div class="section-hdr">🔌 API Integrations</div>
+      <div class="cs">
+        <div class="ib">
+          Connect external tools to automatically push brand + website data as results are found.<br>
+          <b>Apollo.io:</b> Brands will be saved as Accounts in your Apollo workspace.<br>
+          <b>Apify:</b> Used as the primary brand-website search engine (Google Search Scraper actor), before the free DuckDuckGo/Yahoo/Bing/Ecosia fallback tiers.
+        </div>
+
+        <label class="cl">Apify API Token <span class="api-badge">Apify</span></label>
+        <input type="password" class="ci" id="apify-token" placeholder="Paste your Apify API token (apify_api_...)" style="margin-bottom:4px"/>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:10px">
+          Get your token: <a href="https://console.apify.com/account/integrations" target="_blank" style="color:var(--accent)">Apify Console → Integrations</a>. Leave blank to skip Apify and use the free search tiers only.
+        </div>
+
+        <label class="cl">Apollo.io API Key <span class="api-badge">Apollo</span></label>
+        <input type="password" class="ci" id="apollo-key" placeholder="Paste your Apollo.io API key" style="margin-bottom:4px"/>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:10px">
+          Get your key: <a href="https://app.apollo.io/#/settings/integrations/api" target="_blank" style="color:var(--accent)">Apollo Settings → API</a>
+        </div>
+      </div>
+
+      <div id="settings-admin-wrap">
+      <!-- ── v4.0: SECTION: Database Integration ────────────────── -->
+      <div class="section-hdr">🗄 Database Integration (Team)</div>
+      <div class="cs">
+        <div class="ib">
+          Connect to a shared <b>Google Sheet database</b> powered by the v4.0 companion script. Automatically checks for duplicates before processing and saves every new brand result. All team members share the same database.
+        </div>
+        <label class="cl">Database Web App URL</label>
+        <input type="url"  class="ci" id="db-url"    placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom:8px"/>
+        <label class="cl">Database App Secret</label>
+        <input type="text" class="ci" id="db-secret" placeholder="BWF_XXXXXXXXXXXXXX" style="margin-bottom:10px"/>
+        <div class="chk2" style="margin-bottom:8px">
+          <input type="checkbox" id="c-check-db-dupes" checked/>
+          <span>
+            <label for="c-check-db-dupes">Skip brands already in database</label>
+            <span class="rdesc">Check brand name and website against Database Sheet before each ASIN</span>
+          </span>
+        </div>
+        <div class="chk2">
+          <input type="checkbox" id="c-auto-write-db" checked/>
+          <span>
+            <label for="c-auto-write-db">Auto-save new results to database</label>
+            <span class="rdesc">Write found brands + websites to the Database Sheet automatically</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- ── v4.0: SECTION: Admin Mode ───────────────────────────── -->
+      <div class="section-hdr">🔐 Admin Mode</div>
+      <div class="cs">
+        <div class="ib">
+          Enter the <b>Admin Secret</b> from your companion script to unlock admin features: approve/reject team members and view admin statistics in the <b>👥 Team</b> tab.
+        </div>
+        <label class="cl">Admin Secret</label>
+        <input type="password" class="ci" id="admin-secret" placeholder="BWFA_XXXXXXXXXXXXXXXXXX" style="margin-bottom:10px"/>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn g sm" id="bcheck-member-status">🔍 Check My Status</button>
+          <button class="btn g sm" id="bsync-db-dupes2">🔁 Sync DB Duplicates</button>
+        </div>
+        <div id="member-status-result" style="font-size:10px;color:var(--muted);margin-top:6px;min-height:14px"></div>
+        <!-- v7.0.20: admin-only toggle — hide Settings tab from non-admin members -->
+        <div class="chk2" style="margin-top:10px">
+          <input type="checkbox" id="c-hide-settings-for-members"/>
+          <span>
+            <label for="c-hide-settings-for-members">Hide ⚙️ Settings tab from team members</label>
+            <span class="rdesc">When enabled, regular team members cannot see or access the Settings tab</span>
+          </span>
+        </div>
+      </div>
+      </div><!-- /#settings-admin-wrap -->
+
+      <!-- ── SECTION: Google Sheets Auto-Write (v2.0 unchanged) ─ -->
+      <div class="section-hdr">📊 Google Sheets Auto-Write (Optional)</div>
+      <div class="cs">
+        <div class="ib">
+          Results are always exportable as CSV from the Results tab.<br>
+          To also <b>live-write</b> to a Google Sheet as each ASIN is processed, deploy the companion script below and enter its URL + secret.
+        </div>
+        <label class="cl">Web App URL</label>
+        <input type="url" class="ci" id="capiurl" placeholder="https://script.google.com/macros/s/.../exec"/>
+        <label class="cl" style="margin-top:8px">Web App Secret</label>
+        <input type="text" class="ci" id="capisec" placeholder="BWF_XXXXXXXXXXXXXX"/>
+      </div>
+
+      <button class="btn p" id="bsavecfg" style="margin-bottom:14px">💾 Save All Settings</button>
+      <hr class="dv">
+      <div id="settings-scripts-wrap">
+      <!-- Companion script (Admin only — shared team database) -->
+      <div class="cs">
+        <div class="lbl">👑 Admin Companion Script (shared team database)</div>
+        <div class="ib">
+          1. Google Sheets → <b>Extensions → Apps Script</b><br>
+          2. Paste script → <b>Save → run setupSheet()</b><br>
+          3. <b>Deploy → New Deployment → Web App</b><br>
+          &nbsp;&nbsp; Execute as: <b>Me</b> · Access: <b>Anyone</b><br>
+          4. Copy <b>Web App URL + App Secret</b> → Database Integration above<br>
+          5. Copy <b>Admin Secret</b> → Admin Mode section above<br>
+          6. Share <b>App Secret</b> with your team · keep <b>Admin Secret</b> private
+        </div>
+        <button class="btn g sm" id="bcopyscript" style="margin-bottom:6px">📋 Copy Admin Script</button>
+        <div class="code-block" id="ccode"></div>
+      </div>
+
+      <!-- User live-write sheet script (v5.5 — individual users) -->
+      <div class="cs" style="margin-top:12px">
+        <div class="lbl">👤 User Live-Write Sheet Script (individual sheet per user)</div>
+        <div class="ib" style="background:#0d2230;border-left:3px solid var(--accent)">
+          <b>For team members only (NOT the admin) — each person sets up their own private Google Sheet:</b><br><br>
+          1. Go to <b>sheets.google.com → + New</b> · name it e.g. "My Brand Results"<br>
+          2. <b>Extensions → Apps Script</b> · delete all code · paste this script · Save<br>
+          3. Run <b>setupMySheet()</b> → Allow permissions → copy the <b>BWF_... secret</b> shown<br>
+          4. <b>Deploy → New Deployment → Web App</b><br>
+          &nbsp;&nbsp; Execute as: <b>Me</b> · Access: <b>Anyone</b> · copy the <b>Web App URL</b><br>
+          5. Extension → ⚙️ Settings → <b>Live Results Sheet</b> → paste URL + Secret → <b>Save</b>
+        </div>
+        <button class="btn g sm" id="bcopyscript-user" style="margin-bottom:6px">📋 Copy User Sheet Script</button>
+        <div class="code-block" id="ccode-user"></div>
+      </div>
+      </div><!-- /#settings-scripts-wrap -->
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════ GUIDE PANEL ══════════════ -->
+  <div class="pnl" id="guide-panel">
+    <div class="scr">
+
+      <div class="guide-note">
+        📖 <b>Welcome to Source Genius v7.0.13!</b> Follow the steps below to get fully set up with team collaboration and database sync.
+      </div>
+
+      <!-- Step 1 -->
+      <div class="guide-step">
+        <div class="guide-step-title"><span class="guide-step-num">1</span> Register Your Profile</div>
+        <div class="guide-step-body">
+          On first launch, enter your <b>Name</b> and <b>Email</b> in the welcome screen. This identifies you in the team database and CSV exports.<br>
+          You can update your profile anytime in <b>⚙️ Settings → Your Profile</b>.
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="guide-step">
+        <div class="guide-step-title"><span class="guide-step-num">2</span> Deploy the Companion Script (Admin Only)</div>
+        <div class="guide-step-body">
+          <b>Admin setup (one-time):</b><br>
+          1. Open your <b>Google Sheet</b> → <b>Extensions → Apps Script</b><br>
+          2. Copy the full <code>companion.gs</code> script from <b>⚙️ Settings → Companion Script</b><br>
+          3. Paste it into the Apps Script editor → <b>Save</b><br>
+          4. Click <b>Run → setupSheet()</b> — this creates <b>Database</b>, <b>Members</b>, <b>Activity</b> sheets and shows your secrets<br>
+          5. Go to <b>Deploy → New Deployment → Web App</b><br>
+          &nbsp;&nbsp; Set <em>Execute as: Me</em> and <em>Access: Anyone</em><br>
+          6. Copy the <b>Web App URL</b> and your <b>App Secret</b> (shown in the popup)
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="guide-step">
+        <div class="guide-step-title"><span class="guide-step-num">3</span> Connect to the Database</div>
+        <div class="guide-step-body">
+          Go to <b>⚙️ Settings → Database Integration</b> and enter:<br>
+          • <b>Database Web App URL</b> — the Google Apps Script deployment URL<br>
+          • <b>Database App Secret</b> — the <code>BWF_XXXXXX</code> secret shown during setup<br><br>
+          Your results will now automatically sync with the team database. The extension checks for duplicates before processing each brand.
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="guide-step">
+        <div class="guide-step-title"><span class="guide-step-num">4</span> Team Members — Approval &amp; Email Verification</div>
+        <div class="guide-step-body">
+          <b>New members:</b><br>
+          1. Register name &amp; email in the extension → status shows <em>Pending</em><br>
+          2. Click <b>📧 Send Verification Email</b> in the registration screen<br>
+          3. Check inbox for the 6-digit code → enter it → click <b>✅ Verify</b><br>
+          4. Account is now active — extension unlocked!<br><br>
+          <b>Admin alternative:</b> Go to <b>👥 Team</b> tab → manually approve members from <em>Pending Approvals</em><br><br>
+          <b>Blocked users</b> cannot start jobs — admin can block/unblock from the Team tab.
+        </div>
+      </div>
+
+      <!-- Step 4b — User live-write sheet setup -->
+      <div class="guide-step" style="border-left:3px solid var(--accent)">
+        <div class="guide-step-title"><span class="guide-step-num">4b</span> Live-Write Sheet for Each Team Member</div>
+        <div class="guide-step-body">
+          <b>Each team member</b> can connect their own personal Google Sheet to receive results in real time. This is <em>separate</em> from the shared Admin database.<br><br>
+          <b>Setup (do this on your own computer):</b><br>
+          1. Go to <b>sheets.google.com → + New</b> · name it "My Brand Results"<br>
+          2. <b>Extensions → Apps Script</b> · delete all code · paste the <b>User Sheet Script</b> from <b>⚙️ Settings</b> below<br>
+          3. Run <b>setupMySheet()</b> → Allow → copy the <b>BWF_... secret shown</b><br>
+          4. <b>Deploy → New Deployment → Web App</b> · Execute as: Me · Access: Anyone · copy URL<br>
+          5. Extension → <b>⚙️ Settings → Live Results Sheet</b> → paste URL + Secret → <b>Save All Settings</b><br><br>
+          📋 The <b>User Sheet Script</b> is available in <b>⚙️ Settings → User Live-Write Sheet Script</b>.
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="guide-step">
+        <div class="guide-step-title"><span class="guide-step-num">5</span> Running Your First Job</div>
+        <div class="guide-step-body">
+          <b>Option A — Paste ASINs:</b> Go to <b>⚡ Agent</b> → paste Amazon URLs or ASINs (one per line) → click <b>▶ Start</b><br><br>
+          <b>Option B — Amazon Scraper:</b> Open Amazon.com, search any keyword → switch to <em>🕷️ Amazon Scraper</em> tab → click <b>Scrape</b> → then <b>▶ Start</b><br><br>
+          <b>Option C — Keywords:</b> Use the <em>🔑 Keywords</em> tab to paste keywords or upload a CSV — the agent will scrape Amazon for each keyword automatically.<br><br>
+          Use <b>⬇ Queue CSV</b> to download the scraped ASIN list at any time.
+        </div>
+      </div>
+
+      <!-- Step 6 -->
+      <div class="guide-step">
+        <div class="guide-step-title"><span class="guide-step-num">6</span> Exporting Results</div>
+        <div class="guide-step-body">
+          • <b>📋 Results tab → ⬇ Export CSV</b>: Downloads all found brands and websites (duplicates excluded)<br>
+          • <b>📋 Copy (Sheet)</b>: Copies results as tab-separated values for direct paste into Google Sheets<br>
+          • Results are also live-written to your Google Sheet if connected (configure in <b>📊 Google Sheets Auto-Write</b>)<br>
+          • Use <b>Manage Results</b> buttons to remove duplicates or not-found entries
+        </div>
+      </div>
+
+      <!-- Step 7 -->
+      <div class="guide-step">
+        <div class="guide-step-title"><span class="guide-step-num">7</span> Automation Settings (v5.0)</div>
+        <div class="guide-step-body">
+          In <b>⚙️ Settings → Automation</b>:<br>
+          • <b>Auto-remove duplicates</b>: cleans up duplicate rows automatically after each job<br>
+          • <b>Auto database sync</b>: re-checks results against the DB after job completes<br>
+          • <b>Live-write filter</b>: choose whether to write all results, only found brands, or exclude duplicates to your Sheet<br>
+          • <b>Save not-found to DB</b>: also records brands with no website in the database<br>
+          • <b>Auto-click CAPTCHA</b>: experimental — tries to auto-click the Google robot check
+        </div>
+      </div>
+
+      <!-- Step 8 — Tips -->
+      <div class="guide-step">
+        <div class="guide-step-title"><span class="guide-step-num">8</span> Tips for Best Results</div>
+        <div class="guide-step-body">
+          • Use <b>Balanced</b> or <b>Stealth</b> mode for large overnight runs to avoid CAPTCHA<br>
+          • Set <b>Search Delay</b> to at least 1.2s to reduce blocking<br>
+          • Use a <b>VPN</b> for very large jobs (1000+ ASINs)<br>
+          • <b>DB Duplicate Sync</b> is the most powerful deduplication — it checks your entire existing database<br>
+          • The admin's <b>Admin Secret</b> must be kept private — it grants access to approve/block members
+        </div>
+      </div>
+
+      <div style="font-size:10px;color:var(--muted);text-align:center;padding:8px 0">
+        Source Genius v7.0.13 · Brand Website Finder · © Source Genius
+      </div>
+    </div>
+  </div>
+
+</div><!-- /panels -->
+
+<!-- v6: Keywords modal -->
+<div id="v6-kw-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9998; overflow-y:auto; padding:20px;">
+  <div style="background:#1a1f2e; border-radius:10px; padding:18px; max-width:560px; margin:auto; border:1px solid #2a3050;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <span style="font-size:14px; font-weight:600; color:#e0e6f0;">📋 All Scraped Keywords</span>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button id="v6-kw-copy-all" style="background:#1e2538;color:#90c0ff;border:1px solid #3a4060;border-radius:5px;padding:4px 10px;cursor:pointer;font-size:11px;">📋 Copy All (0)</button>
+        <button id="v6-kw-modal-close" style="background:none; border:none; color:#8090a0; cursor:pointer; font-size:16px;">✕</button>
+      </div>
+    </div>
+
+    <!-- v6.0.2: Search area -->
+    <div style="margin-bottom:10px;">
+      <!-- Single keyword search -->
+      <div style="display:flex;gap:6px;margin-bottom:6px;">
+        <input id="v6-kw-search-input" type="text" placeholder="🔍 Search keyword…"
+          style="flex:1;background:#0d1020;border:1px solid #2a3050;border-radius:5px;color:#c0cce0;padding:5px 8px;font-size:11px;outline:none;">
+        <button id="v6-kw-search-clear" style="background:#2a3050;color:#8090a0;border:1px solid #3a4060;border-radius:5px;padding:4px 8px;cursor:pointer;font-size:11px;">✕ Clear</button>
+      </div>
+      <!-- Bulk keyword search -->
+      <details style="font-size:11px;color:#8090a0;">
+        <summary style="cursor:pointer;padding:4px 0;user-select:none;">🔎 Bulk search (paste multiple keywords)</summary>
+        <div style="margin-top:6px;display:flex;flex-direction:column;gap:6px;">
+          <textarea id="v6-kw-bulk-input" rows="3" placeholder="One keyword per line, or comma-separated…"
+            style="background:#0d1020;border:1px solid #2a3050;border-radius:5px;color:#c0cce0;padding:6px 8px;font-size:11px;resize:vertical;outline:none;width:100%;box-sizing:border-box;"></textarea>
+          <button id="v6-kw-bulk-search-btn" style="align-self:flex-start;background:#1e3050;color:#90c0ff;border:1px solid #2a5080;border-radius:5px;padding:5px 12px;cursor:pointer;font-size:11px;">🔎 Search Bulk</button>
+          <p style="color:#556070;font-size:10px;margin:0;">Keywords already in the list will be highlighted as duplicates.</p>
+        </div>
+      </details>
+    </div>
+
+    <div id="v6-kw-modal-body" style="overflow-y:auto; max-height:260px; font-size:12px; color:#c0cce0;">
+      <p style="color:#8090a0; text-align:center;">Loading…</p>
+    </div>
+
+    <!-- v7.0.2: Suggested Keywords section -->
+    <div id="v7-suggestions-section" style="margin-top:12px; border-top:1px solid #2a3050; padding-top:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span style="font-size:12px; font-weight:600; color:#90c8ff;">💡 Suggested Keywords <span id="v7-sugg-count" style="font-size:10px; color:#5a7090;">(loading…)</span></span>
+        <div style="display:flex; gap:6px;">
+          <button id="v7-sugg-copy-all" style="background:#1a3050;color:#88c0ff;border:1px solid #2a5080;border-radius:5px;padding:3px 9px;cursor:pointer;font-size:11px;" title="Copy all suggestions to clipboard">📋 Copy All</button>
+          <button id="v7-sugg-load-scraper" style="background:#0d3020;color:#56d364;border:1px solid #1a6030;border-radius:5px;padding:3px 9px;cursor:pointer;font-size:11px;font-weight:600;" title="Load suggestions into keyword scraper">&#x1F4E5; Load into Scraper</button>
+          <button id="v7-sugg-refresh" style="background:#1a2040;color:#8090a0;border:1px solid #2a3060;border-radius:5px;padding:3px 9px;cursor:pointer;font-size:11px;" title="Get a fresh set of suggestions">🔄 Refresh</button>
+        </div>
+      </div>
+      <div style="font-size:10px; color:#5a7090; margin-bottom:6px;">These keywords are NOT in your scraped list — try them to find new brands!</div>
+      <div id="v7-sugg-body" style="max-height:150px; overflow-y:auto; font-size:11px; color:#a0b8d0; background:#0a0d18; border-radius:6px; padding:8px;">
+        <span style="color:#5a7090;">⏳ Loading suggestions…</span>
+      </div>
+    </div>
+
+    <div id="v6-kw-modal-admin-row" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid #2a3050;">
+      <div style="display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
+        <button id="v6-kw-clear-btn" style="background:#3a1a1a; color:#ff8080; border:1px solid #6a2a2a; border-radius:5px; padding:5px 12px; cursor:pointer; font-size:11px;">🗑 Clear All Keywords</button>
+        <label style="font-size:11px; color:#8090a0; cursor:pointer; display:flex; align-items:center; gap:4px;">
+          <input type="checkbox" id="v6-kw-view-toggle">
+          Allow users to view keywords
+        </label>
+        <label style="font-size:11px; color:#8090a0; cursor:pointer; display:flex; align-items:center; gap:4px;" title="When OFF, the 'By' column is hidden from non-admin users">
+          <input type="checkbox" id="v6-kw-show-by-toggle">
+          Show who searched each keyword
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Copyright footer -->
+<div class="copyright-footer">
+  © Developed by Source Genius
+</div>
+
+<!-- v7.0.3: Incoming Call Popup (visible to admin when user calls) — WhatsApp-style -->
+<div id="v7-incoming-call-popup">
+  <div class="v7-call-popup-inner">
+    <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:26px">● Source Genius Voice Call</div>
+    <div class="v7-call-ring-anim">
+      <div class="v7-call-ring-wave"></div>
+      <div class="v7-call-ring-wave" style="animation-delay:.6s"></div>
+      <div class="v7-call-ring-wave" style="animation-delay:1.2s"></div>
+      <div class="v7-call-avatar-circle" id="v7-incoming-caller-avatar">👤</div>
+    </div>
+    <div class="v7-call-caller-name" id="v7-incoming-caller-name">Calling…</div>
+    <div class="v7-call-sub"><span class="v7-call-sub-dot"></span>Incoming voice call</div>
+    <div class="v7-call-action-row">
+      <div class="v7-call-action-wrap">
+        <button id="v7-reject-call-btn" class="v7-call-circle-btn v7-call-decline">&#x260F;</button>
+        <span class="v7-call-action-label">Decline</span>
+      </div>
+      <div class="v7-call-action-wrap">
+        <button id="v7-accept-call-btn" class="v7-call-circle-btn v7-call-accept">&#x260E;</button>
+        <span class="v7-call-action-label">Accept</span>
+      </div>
+    </div>
+    <div id="v7-incoming-call-msg" style="font-size:11px;color:rgba(255,255,255,.75);margin-top:18px;min-height:16px;text-align:center"></div>
+  </div>
+</div>
+
+<!-- v7.0.3: Active Call Bar — WhatsApp-style bottom bar -->
+<div id="v7-active-call-bar">
+  <div class="v7-call-bar-left">
+    <div class="v7-call-bar-avatar" id="v7-call-bar-avatar">👤</div>
+    <div>
+      <div id="v7-call-bar-name" style="font-size:12px;font-weight:700;color:#fff;line-height:1.2">Voice Call</div>
+      <div class="v7-call-status-text" id="v7-call-status-text">⏳ Connecting…</div>
+      <div class="v7-call-timer" id="v7-call-timer">00:00</div>
+    </div>
+  </div>
+  <div class="v7-call-ctrl-btns">
+    <button id="v7-speaker-btn" title="Speaker" class="v7-ctrl-btn v7-ctrl-speaker speakeron">&#x1F50A;</button>
+    <button id="v7-mute-btn" title="Mute / Unmute" class="v7-ctrl-btn v7-ctrl-mute">&#x1F399;&#xFE0F;</button>
+    <button id="v7-hangup-btn" class="v7-ctrl-btn v7-ctrl-hangup">&#x260F;</button>
+  </div>
+</div>
+
+<!-- v7.0.15: Outgoing call overlay (shown to caller side) -->
+<div id="v7-outgoing-call-overlay">
+  <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:28px">● Source Genius Voice Call</div>
+  <div class="v7-out-ring-anim">
+    <div class="v7-out-ring-wave"></div>
+    <div class="v7-out-ring-wave" style="animation-delay:.6s"></div>
+    <div class="v7-out-ring-wave" style="animation-delay:1.2s"></div>
+    <div class="v7-out-avatar" id="v7-outgoing-callee-avatar">👤</div>
+  </div>
+  <div class="v7-out-name" id="v7-outgoing-callee-name">Calling…</div>
+  <div class="v7-out-status" id="v7-outgoing-status">Ringing…</div>
+  <button class="v7-out-end-btn" id="v7-outgoing-end-btn">&#x260F;</button>
+  <div class="v7-out-end-label">Tap to end call</div>
+</div>
+<!-- Hidden audio elements for call ringtone playback -->
+<audio id="v7-ring-audio" loop style="display:none"></audio>
+<audio id="v7-remote-audio" autoplay style="display:none"></audio>
+
+<!-- Scraping Progress Floating Card (Non-blocking) -->
+<div id="scrape-popup-overlay" style="display:none; position:fixed; top:14px; left:14px; right:14px; z-index:12000; pointer-events:none;">
+  <div style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:12px 14px; box-shadow:0 8px 24px rgba(0,0,0,0.8); pointer-events:auto; display:flex; flex-direction:column; gap:8px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-size:11px; font-weight:700; color:#e6edf3; display:flex; align-items:center; gap:6px;">
+        <span style="display:inline-block; width:6px; height:6px; background:#f0883e; border-radius:50%; animation:pulse 1s infinite;"></span>
+        Scraping Keywords...
+      </span>
+      <button id="scrape-popup-close-btn" style="background:none; border:none; color:#8b949e; cursor:pointer; font-size:12px; padding:0 4px; outline:none;">✕</button>
+    </div>
+    
+    <!-- Progress Bar -->
+    <div style="background:#21262d; height:5px; border-radius:3px; overflow:hidden; border:1px solid #30363d;">
+      <div id="scrape-popup-bar" style="height:100%; width:0%; background:#f0883e; border-radius:3px; transition:width 0.3s;"></div>
+    </div>
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; font-size:10px;">
+      <span style="font-weight:600; color:#58a6ff;" id="scrape-popup-stats">0 / 0 Keywords (0%)</span>
+      <span style="color:#3fb950; font-weight:600;" id="scrape-popup-found">0 ASINs found</span>
+    </div>
+  </div>
+</div>
+
+<script src="sidepanel.js"></script>
+</body>
+</html>
